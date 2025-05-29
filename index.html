@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Librain - Modern Library Space</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #6B73FF 0%, #000DFF 50%, #0085FF 100%);
+        }
+        .book-card:hover {
+            transform: translateY(-10px) rotate(2deg);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .timing-slot:hover {
+            transform: scale(1.05);
+        }
+        .nav-link {
+            position: relative;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: white;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        .owner-card {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .owner-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="font-sans bg-gray-50">
+    <!-- Header/Navigation -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-book-open text-3xl"></i>
+                    <h1 class="text-2xl md:text-3xl font-bold">Librain</h1>
+                </div>
+                <nav class="hidden md:flex space-x-8">
+                    <a href="#home" class="nav-link">Home</a>
+                    <a href="#features" class="nav-link">Features</a>
+                    <a href="#timings" class="nav-link">Timings</a>
+                    <a href="#location" class="nav-link">Location</a>
+                    <a href="#about" class="nav-link">About Us</a>
+                    <a href="#contact" class="nav-link">Contact</a>
+                </nav>
+                <div class="flex items-center space-x-4">
+                    <button onclick="showLoginModal()" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition">Login</button>
+                    <button class="md:hidden" id="mobile-menu-button">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div class="md:hidden hidden bg-blue-900 text-white py-4 px-4" id="mobile-menu">
+            <div class="flex flex-col space-y-4">
+                <a href="#home" class="block py-2">Home</a>
+                <a href="#features" class="block py-2">Features</a>
+                <a href="#timings" class="block py-2">Timings</a>
+                <a href="#location" class="block py-2">Location</a>
+                <a href="#about" class="block py-2">About Us</a>
+                <a href="#contact" class="block py-2">Contact</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="gradient-bg text-white py-20">
+        <div class="container mx-auto px-4 flex flex-col md:flex-row items-center">
+            <div class="md:w-1/2 mb-10 md:mb-0">
+                <h1 class="text-4xl md:text-6xl font-bold mb-6">Your Perfect <span class="text-yellow-300">Study Space</span></h1>
+                <p class="text-xl mb-8">Librain offers a serene environment with premium facilities for students, professionals, and book lovers.</p>
+                <div class="flex space-x-4">
+                    <button onclick="showBookingModal()" class="bg-yellow-400 text-blue-900 px-6 py-3 rounded-lg font-bold hover:bg-yellow-300 transition">Book Now</button>
+                    <button onclick="scrollToSection('features')" class="border-2 border-white px-6 py-3 rounded-lg font-bold hover:bg-white hover:text-blue-900 transition">Learn More</button>
+                </div>
+            </div>
+            <div class="md:w-1/2 flex justify-center">
+                <img src="https://images.unsplash.com/photo-1555421689-3f034debb7a6" alt="Library Illustration" class="w-full max-w-md rounded-xl shadow-lg floating">
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 bg-white">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">Our Premium Facilities</h2>
+            <p class="text-gray-600 text-center max-w-2xl mx-auto mb-16">Experience the best study environment with our state-of-the-art facilities</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-gray-50 p-8 rounded-xl shadow-md hover:shadow-xl transition">
+                    <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-wifi text-blue-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">High-Speed WiFi</h3>
+                    <p class="text-gray-600">Uninterrupted 100 Mbps internet connection for all your research and study needs.</p>
+                </div>
+
+                <div class="bg-gray-50 p-8 rounded-xl shadow-md hover:shadow-xl transition">
+                    <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-coffee text-green-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Cafeteria</h3>
+                    <p class="text-gray-600">Healthy snacks and beverages available to keep you energized throughout your study session.</p>
+                </div>
+
+                <div class="bg-gray-50 p-8 rounded-xl shadow-md hover:shadow-xl transition">
+                    <div class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-book text-purple-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Extensive Collection</h3>
+                    <p class="text-gray-600">Over 10,000 books across various genres and academic disciplines.</p>
+                </div>
+
+                <div class="bg-gray-50 p-8 rounded-xl shadow-md hover:shadow-xl transition">
+                    <div class="bg-yellow-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-headphones text-yellow-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Silent Zones</h3>
+                    <p class="text-gray-600">Dedicated quiet areas with soundproofing for maximum concentration.</p>
+                </div>
+
+                <div class="bg-gray-50 p-8 rounded-xl shadow-md hover:shadow-xl transition">
+                    <div class="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-laptop text-red-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Tech Stations</h3>
+                    <p class="text-gray-600">Modern computers and printing facilities available for members.</p>
+                </div>
+
+                <div class="bg-gray-50 p-8 rounded-xl shadow-md hover:shadow-xl transition">
+                    <div class="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-users text-indigo-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Study Groups</h3>
+                    <p class="text-gray-600">Dedicated spaces for collaborative learning and group discussions.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Timing Slots Section -->
+    <section id="timings" class="py-20 bg-gray-100">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">Flexible Timing Options</h2>
+            <p class="text-gray-600 text-center max-w-2xl mx-auto mb-16">Choose the duration that fits your schedule</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                <div class="bg-white p-8 rounded-xl shadow-md timing-slot transition text-center">
+                    <div class="bg-blue-100 w-24 h-24 rounded-full flex items-center justify-center mb-6 mx-auto">
+                        <i class="fas fa-clock text-blue-600 text-4xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-3">6-Hour Slot</h3>
+                    <p class="text-gray-600 mb-6">Perfect for focused study sessions</p>
+                    <div class="text-4xl font-bold text-blue-600 mb-6">₹500</div>
+                    <ul class="text-left mb-8 space-y-2">
+                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> 6 hours of uninterrupted study</li>
+                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Free WiFi access</li>
+                    </ul>
+                    <button onclick="showBookingModal('6-hour slot')" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition w-full">Book Now</button>
+                </div>
+
+                <div class="bg-white p-8 rounded-xl shadow-xl timing-slot transition text-center border-2 border-yellow-400 transform scale-105">
+                    <div class="bg-yellow-100 w-24 h-24 rounded-full flex items-center justify-center mb-6 mx-auto">
+                        <i class="fas fa-sun text-yellow-600 text-4xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-3">12-Hour Slot</h3>
+                    <p class="text-gray-600 mb-6">Ideal for full-day study marathons</p>
+                    <div class="text-4xl font-bold text-yellow-600 mb-6">₹800</div>
+                    <ul class="text-left mb-8 space-y-2">
+                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> 12 hours of study time</li>
+                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Premium WiFi access</li>
+                    </ul>
+                    <button onclick="showBookingModal('12-hour slot')" class="bg-yellow-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-yellow-600 transition w-full">Book Now</button>
+                </div>
+
+                <div class="bg-white p-8 rounded-xl shadow-md timing-slot transition text-center">
+                    <div class="bg-purple-100 w-24 h-24 rounded-full flex items-center justify-center mb-6 mx-auto">
+                        <i class="fas fa-calendar-day text-purple-600 text-4xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-3">Monthly Pass</h3>
+                    <p class="text-gray-600 mb-6">For regular visitors</p>
+                    <div class="text-4xl font-bold text-purple-600 mb-6">₹2000</div>
+                    <ul class="text-left mb-8 space-y-2">
+                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Unlimited access for 30 days</li>
+                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Priority WiFi bandwidth</li>
+                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Daily complimentary beverage</li>
+                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> 30% discount on cafeteria</li>
+                    </ul>
+                    <button onclick="showBookingModal('Monthly pass')" class="bg-purple-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-purple-700 transition w-full">Book Now</button>
+                </div>
+            </div>
+
+            <div class="mt-16 bg-white p-8 rounded-xl shadow-md max-w-4xl mx-auto">
+                <h3 class="text-2xl font-bold mb-4 text-center">Regular Opening Hours</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="font-bold">Monday</div>
+                        <div>8:00 AM - 8:00 PM</div>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="font-bold">Tuesday</div>
+                        <div>8:00 AM - 8:00 PM</div>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="font-bold">Wednesday</div>
+                        <div>8:00 AM - 8:00 PM</div>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="font-bold">Thursday</div>
+                        <div>8:00 AM - 8:00 PM</div>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="font-bold">Friday</div>
+                        <div>8:00 AM - 8:00 PM</div>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="font-bold">Saturday</div>
+                        <div>9:00 AM - 8:00 PM</div>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="font-bold">Sunday</div>
+                        <div>9:00 AM - 6:00 PM</div>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="font-bold">Holidays</div>
+                        <div>10:00 AM - 4:00 PM</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Location Section -->
+    <section id="location" class="py-20 bg-white">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">Our Location</h2>
+            <p class="text-gray-600 text-center max-w-2xl mx-auto mb-16">Visit us at our convenient location in the heart of the city</p>
+
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 mb-8 md:mb-0 md:pr-8">
+                    <div class="bg-gray-100 p-6 rounded-xl shadow-md">
+                        <h3 class="text-xl font-bold mb-4">Address</h3>
+                        <p class="mb-4"><i class="fas fa-map-marker-alt text-blue-600 mr-2"></i> Metro Pillar No 849, Ganga Annexe, 2nd Floor, Near Sangam Lab, Opposite Jhajjar Mod, Bahadurgarh, Haryana - 124507</p>
+
+                        <h3 class="text-xl font-bold mb-4 mt-6">Transport Options</h3>
+                        <div class="space-y-3">
+                            <p><i class="fas fa-subway text-purple-600 mr-2"></i> Nearest Metro: Brigadier Hoshiar Singh (450m)</p>
+                            <p><i class="fas fa-bus text-green-600 mr-2"></i> Bus Routes: 12A, 45B, 78D</p>
+                            <p><i class="fas fa-parking text-yellow-600 mr-2"></i> Parking: Available (Free)</p>
+                        </div>
+
+                        <h3 class="text-xl font-bold mb-4 mt-6">Landmarks</h3>
+                        <div class="space-y-2">
+                            <p>Jhajjar Mod</p>
+                            <p>Radha Ganga Arcade</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="md:w-1/2 h-96">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1749.959325277304!2d76.92757274955507!3d28.69207997101917!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390d0923f88323c1%3A0x87f81533f3e6481b!2sLibrain%20-%20Powered%20by%20RK%20SHORTHAND!5e0!3m2!1sen!2sin!4v1748507488626!5m2!1sen!2sin" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" class="rounded-xl shadow-lg"></iframe>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Us Section -->
+    <section id="about" class="py-20 bg-gray-100">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">About Librain</h2>
+            <p class="text-gray-600 text-center max-w-3xl mx-auto mb-16">Our story, mission, and the team behind your perfect study space</p>
+
+            <div class="flex flex-col md:flex-row items-center mb-16">
+                <div class="md:w-1/2 mb-8 md:mb-0 md:pr-12">
+                    <h3 class="text-2xl font-bold mb-4">Our Story</h3>
+                    <p class="text-gray-700 mb-4">Founded in 2018, Librain began as a small study space with just 10 desks and a dream to create the perfect environment for focused learning.</p>
+                    <p class="text-gray-700 mb-4">Today, we've grown into one of the city's most loved study spaces, serving over 5,000 students and professionals every month.</p>
+                    <p class="text-gray-700">Our name "Librain" combines "Library" and "Brain" - representing our commitment to nurturing minds through quality study environments.</p>
+                </div>
+                <div class="md:w-1/2">
+                    <img src="https://images.unsplash.com/photo-1579389083078-4e7018379f7e" alt="Library Interior" class="rounded-xl shadow-lg w-full">
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row items-center mb-16">
+                <div class="md:w-1/2 order-2 md:order-1">
+                    <img src="https://images.unsplash.com/photo-1579389083078-4e7018379f7e" alt="Team Photo" class="rounded-xl shadow-lg w-full">
+                </div>
+                <div class="md:w-1/2 mb-8 md:mb-0 md:pl-12 order-1 md:order-2">
+                    <h3 class="text-2xl font-bold mb-4">Our Team</h3>
+                    <p class="text-gray-700 mb-4">Our dedicated team of 15 professionals works round the clock to ensure your study experience is seamless and productive.</p>
+                    <p class="text-gray-700">From our friendly front desk staff to our meticulous maintenance crew, every Librain team member is committed to your comfort and success.</p>
+                </div>
+            </div>
+
+            <!-- Redesigned Ownership & Development Section -->
+            <div class="max-w-6xl mx-auto">
+                <h3 class="text-2xl font-bold mb-8 text-center">Ownership & Development</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="owner-card bg-white p-6 rounded-xl shadow-md flex flex-col md:flex-row items-center">
+                        <div class="md:w-1/3 mb-4 md:mb-0 flex justify-center">
+                            <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Owner" class="w-32 h-32 rounded-full object-cover border-4 border-blue-100">
+                        </div>
+                        <div class="md:w-2/3 md:pl-6 text-center md:text-left">
+                            <h4 class="font-bold text-xl mb-2">Varun Sharma</h4>
+                            <p class="text-blue-600 font-medium mb-3">Founder & Owner</p>
+                            <p class="text-gray-600">With over 5+ years in the education sector, RK Shorthand Institute envisioned Librain as a space where learning meets comfort. Hi, I'm Varun Sharma, the founder of Rk Institute of Shorthand Career, an innovative English Shorthand institute dedicated to revolutionizing the way we learn and communicate. With a passion for education and a commitment to excellence, I strive to empower students to achieve their full potential. My mission is to provide top-quality education that empowers individuals to communicate effectively and efficiently. Through the collaboration with PrepSteno powered by RK SHORTHAND, I aim to create a community of learners who are equipped with the skills they need to succeed in today's fast-paced world.</p>
+                            <div class="mt-4 flex justify-center md:justify-start space-x-3">
+                                <a href="#" class="text-blue-500 hover:text-blue-700"><i class="fab fa-linkedin-in"></i></a>
+                                <a href="#" class="text-blue-500 hover:text-blue-700"><i class="fab fa-twitter"></i></a>
+                                <a href="#" class="text-blue-500 hover:text-blue-700"><i class="fas fa-globe"></i></a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="owner-card bg-white p-6 rounded-xl shadow-md flex flex-col md:flex-row items-center">
+                        <div class="md:w-1/3 mb-4 md:mb-0 flex justify-center">
+                            <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Developer" class="w-32 h-32 rounded-full object-cover border-4 border-purple-100">
+                        </div>
+                        <div class="md:w-2/3 md:pl-6 text-center md:text-left">
+                            <h4 class="font-bold text-xl mb-2">Akshar Chaudhary</h4>
+                            <p class="text-purple-600 font-medium mb-3">Management & Developer</p>
+                            <p class="text-gray-600">Hi, I'm Akshar Chaudhary, the developer of innovative PrepSteno windows software, the website, and the android application dedicated to revolutionizing digital experiences. With a passion for technology and a commitment to excellence, I strive to create intuitive and efficient solutions that empower users. My mission is to develop top-quality software that enhances productivity and communication. Through meticulous design and cutting-edge technology, I aim to build a portfolio of digital tools that meet the needs of users in today's fast-paced world.</p>
+                            <div class="mt-4 flex justify-center md:justify-start space-x-3">
+                                <a href="#" class="text-purple-500 hover:text-purple-700"><i class="fab fa-linkedin-in"></i></a>
+                                <a href="#" class="text-purple-500 hover:text-purple-700"><i class="fab fa-github"></i></a>
+                                <a href="#" class="text-purple-500 hover:text-purple-700"><i class="fas fa-globe"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-20 bg-white">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">Contact Us</h2>
+            <p class="text-gray-600 text-center max-w-2xl mx-auto mb-16">Have questions? Reach out to our team anytime</p>
+
+            <div class="flex flex-col md:flex-row">
+                <div class="md:w-1/2 mb-10 md:mb-0 md:pr-12">
+                    <div class="bg-gray-50 p-8 rounded-xl shadow-md h-full">
+                        <h3 class="text-2xl font-bold mb-6">Get in Touch</h3>
+
+                        <div class="space-y-6">
+                            <div class="flex items-start">
+                                <div class="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mr-4">
+                                    <i class="fas fa-phone text-blue-600"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold">Phone</h4>
+                                    <p class="text-gray-600">+91 98765 43210</p>
+                                    <p class="text-gray-600">+91 11 2345 6789</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start">
+                                <div class="bg-green-100 w-12 h-12 rounded-full flex items-center justify-center mr-4">
+                                    <i class="fas fa-envelope text-green-600"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold">Email</h4>
+                                    <p class="text-gray-600">info@librain.com</p>
+                                    <p class="text-gray-600">support@librain.com</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start">
+                                <div class="bg-yellow-100 w-12 h-12 rounded-full flex items-center justify-center mr-4">
+                                    <i class="fas fa-clock text-yellow-600"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold">Hours</h4>
+                                    <p class="text-gray-600">Monday-Friday: 8am - 10pm</p>
+                                    <p class="text-gray-600">Weekends: 9am - 8pm</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start">
+                                <div class="bg-purple-100 w-12 h-12 rounded-full flex items-center justify-center mr-4">
+                                    <i class="fas fa-share-alt text-purple-600"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold">Social Media</h4>
+                                    <div class="flex space-x-4 mt-2">
+                                        <a href="#" class="bg-blue-600 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-blue-700 transition">
+                                            <i class="fab fa-facebook-f"></i>
+                                        </a>
+                                        <a href="#" class="bg-pink-600 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-pink-700 transition">
+                                            <i class="fab fa-instagram"></i>
+                                        </a>
+                                        <a href="#" class="bg-blue-400 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-blue-500 transition">
+                                            <i class="fab fa-twitter"></i>
+                                        </a>
+                                        <a href="#" class="bg-red-600 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-red-700 transition">
+                                            <i class="fab fa-youtube"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="md:w-1/2">
+                    <div class="bg-gray-50 p-8 rounded-xl shadow-md h-full">
+                        <h3 class="text-2xl font-bold mb-6">Send Us a Message</h3>
+                        <form id="contact-form">
+                            <div class="mb-4">
+                                <label for="name" class="block text-gray-700 font-medium mb-2">Your Name</label>
+                                <input type="text" id="name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div class="mb-4">
+                                <label for="email" class="block text-gray-700 font-medium mb-2">Email Address</label>
+                                <input type="email" id="email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div class="mb-4">
+                                <label for="subject" class="block text-gray-700 font-medium mb-2">Subject</label>
+                                <input type="text" id="subject" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div class="mb-6">
+                                <label for="message" class="block text-gray-700 font-medium mb-2">Message</label>
+                                <textarea id="message" rows="5" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required></textarea>
+                            </div>
+                            <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition w-full">Send Message</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold">Member Login</h3>
+                <button onclick="hideLoginModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="login-form">
+                <div class="mb-4">
+                    <label for="login-email" class="block text-gray-700 mb-2">Email</label>
+                    <input type="email" id="login-email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-6">
+                    <label for="login-password" class="block text-gray-700 mb-2">Password</label>
+                    <input type="password" id="login-password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition w-full mb-4">Login</button>
+                <div class="text-center">
+                    <a href="#" class="text-blue-600 hover:underline">Forgot password?</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Booking Modal -->
+    <div id="booking-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold">Book Your Slot</h3>
+                <button onclick="hideBookingModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="booking-form">
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">Selected Package</label>
+                    <div id="selected-package" class="font-bold text-blue-600"></div>
+                </div>
+                <div class="mb-4">
+                    <label for="booking-name" class="block text-gray-700 mb-2">Full Name</label>
+                    <input type="text" id="booking-name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-4">
+                    <label for="booking-email" class="block text-gray-700 mb-2">Email</label>
+                    <input type="email" id="booking-email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-4">
+                    <label for="booking-phone" class="block text-gray-700 mb-2">Phone Number</label>
+                    <input type="tel" id="booking-phone" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-6">
+                    <label for="booking-date" class="block text-gray-700 mb-2">Preferred Date</label>
+                    <input type="date" id="booking-date" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <button type="submit" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 transition w-full">Confirm Booking</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Attendance Modal -->
+    <div id="attendance-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold">Mark Attendance</h3>
+                <button onclick="hideAttendanceModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="attendance-form">
+                <div class="mb-4">
+                    <label for="member-id" class="block text-gray-700 mb-2">Member ID</label>
+                    <input type="text" id="member-id" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-6">
+                    <label for="attendance-date" class="block text-gray-700 mb-2">Date</label>
+                    <input type="date" id="attendance-date" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <button type="submit" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 transition w-full">Submit Attendance</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Success Toast -->
+    <div id="success-toast" class="hidden fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center">
+        <i class="fas fa-check-circle mr-2"></i>
+        <span id="success-message">Operation completed successfully!</span>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <i class="fas fa-book-open text-2xl"></i>
+                        <h3 class="text-xl font-bold">Librain</h3>
+                    </div>
+                    <p class="text-gray-400">Your perfect study space in the heart of the city. We provide the ideal environment for focused learning and productivity.</p>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-bold mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#home" class="text-gray-400 hover:text-white transition">Home</a></li>
+                        <li><a href="#features" class="text-gray-400 hover:text-white transition">Features</a></li>
+                        <li><a href="#timings" class="text-gray-400 hover:text-white transition">Timings</a></li>
+                        <li><a href="#location" class="text-gray-400 hover:text-white transition">Location</a></li>
+                        <li><a href="#about" class="text-gray-400 hover:text-white transition">About Us</a></li>
+                        <li><a href="#contact" class="text-gray-400 hover:text-white transition">Contact</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-bold mb-4">Opening Hours</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li>Mon-Fri: 8am - 10pm</li>
+                        <li>Saturday: 9am - 8pm</li>
+                        <li>Sunday: 9am - 6pm</li>
+                        <li>Holidays: 10am - 4pm</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-bold mb-4">Newsletter</h4>
+                    <p class="text-gray-400 mb-4">Subscribe to get updates on special offers and events.</p>
+                    <form class="flex">
+                        <input type="email" placeholder="Your email" class="px-4 py-2 rounded-l-lg focus:outline-none text-gray-900 w-full">
+                        <button type="submit" class="bg-blue-600 px-4 py-2 rounded-r-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                    <div class="flex space-x-4 mt-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-400 mb-4 md:mb-0">© 2023 Librain. All rights reserved.</p>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-400 hover:text-white transition">Privacy Policy</a>
+                    <a href="#" class="text-gray-400 hover:text-white transition">Terms of Service</a>
+                    <a href="#" class="text-gray-400 hover:text-white transition">Sitemap</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+
+                    // Close mobile menu if open
+                    const mobileMenu = document.getElementById('mobile-menu');
+                    if (!mobileMenu.classList.contains('hidden')) {
+                        mobileMenu.classList.add('hidden');
+                    }
+                }
+            });
+        });
+
+        // Helper function to scroll to section
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // Modal functions
+        function showLoginModal() {
+            document.getElementById('login-modal').classList.remove('hidden');
+        }
+
+        function hideLoginModal() {
+            document.getElementById('login-modal').classList.add('hidden');
+        }
+
+        function showBookingModal(packageType = '') {
+            if (packageType) {
+                document.getElementById('selected-package').textContent = packageType;
+            }
+            document.getElementById('booking-modal').classList.remove('hidden');
+        }
+
+        function hideBookingModal() {
+            document.getElementById('booking-modal').classList.add('hidden');
+        }
+
+        function showAttendanceModal() {
+            document.getElementById('attendance-modal').classList.remove('hidden');
+        }
+
+        function hideAttendanceModal() {
+            document.getElementById('attendance-modal').classList.add('hidden');
+        }
+
+        function showSuccessToast(message) {
+            const toast = document.getElementById('success-toast');
+            const messageElement = document.getElementById('success-message');
+
+            messageElement.textContent = message || 'Operation completed successfully!';
+            toast.classList.remove('hidden');
+
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Form submissions
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            hideLoginModal();
+            showSuccessToast('Login successful!');
+        });
+
+        document.getElementById('booking-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            hideBookingModal();
+            showSuccessToast('Booking confirmed! We\'ve sent you a confirmation email.');
+        });
+
+        document.getElementById('attendance-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            hideAttendanceModal();
+            showSuccessToast('Attendance marked successfully!');
+        });
+
+        document.getElementById('contact-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            showSuccessToast('Message sent! We\'ll get back to you soon.');
+            this.reset();
+        });
+
+        // Close modals when clicking outside
+        document.addEventListener('click', function(e) {
+            if (e.target.id === 'login-modal') {
+                hideLoginModal();
+            }
+            if (e.target.id === 'booking-modal') {
+                hideBookingModal();
+            }
+            if (e.target.id === 'attendance-modal') {
+                hideAttendanceModal();
+            }
+        });
+
+        // Close modals with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hideLoginModal();
+                hideBookingModal();
+                hideAttendanceModal();
+            }
+        });
+
+        // Set today's date as default for date inputs
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('booking-date').setAttribute('min', today);
+            document.getElementById('attendance-date').value = today;
+        });
+    </script>
+</body>
+</html>
