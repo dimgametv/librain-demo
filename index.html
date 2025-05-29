@@ -727,6 +727,7 @@
             // Save booking data to Firebase
             const bookingsRef = database.ref('bookings');
             const newBookingRef = bookingsRef.push();
+
             newBookingRef.set({
                 packageType,
                 name,
@@ -735,6 +736,7 @@
                 date,
                 timestamp: new Date().toISOString()
             }).then(() => {
+                console.log('Booking saved successfully!');
                 hideBookingModal();
                 showSuccessToast('Booking confirmed! We\'ve sent you a confirmation email.');
                 document.getElementById('booking-form').reset();
