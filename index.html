@@ -2,359 +2,884 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Librain - Modern Library Space</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Librain | Library Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Firebase SDK scripts -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <!-- Chart.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #a29bfe;
+            --dark: #2d3436;
+            --light: #f5f6fa;
         }
-        .floating {
-            animation: float 6s ease-in-out infinite;
+
+        body {
+            background-color: var(--light);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
-        .gradient-bg {
-            background: linear-gradient(135deg, #6B73FF 0%, #000DFF 50%, #0085FF 100%);
+
+        .neumorphic {
+            border-radius: 16px;
+            background: #f5f6fa;
+            box-shadow:  4px 4px 8px rgba(217, 218, 222, 0.5),
+                -4px -4px 8px rgba(255, 255, 255, 0.5);
         }
-        .book-card:hover {
-            transform: translateY(-10px) rotate(2deg);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+        .neumorphic-inset {
+            border-radius: 16px;
+            background: #f5f6fa;
+            box-shadow: inset 8px 8px 16px #d9dade,
+                        inset -8px -8px 16px #ffffff;
         }
-        .timing-slot:hover {
+
+        .neumorphic-btn {
+            border-radius: 12px;
+            background: #f5f6fa;
+            box-shadow:  4px 4px 8px #d9dade,
+                        -4px -4px 8px #ffffff;
+            transition: all 0.2s ease;
+        }
+
+        .neumorphic-btn:hover {
+            box-shadow:  2px 2px 4px #d9dade,
+                        -2px -2px 4px #ffffff;
+        }
+
+        .neumorphic-btn:active {
+            box-shadow: inset 2px 2px 4px #d9dade,
+                        inset -2px -2px 4px #ffffff;
+        }
+
+        .seat {
+            width: 100%;
+            aspect-ratio: 1/1;
+            border-radius: 10px;
+            background: #f5f6fa;
+            box-shadow:  3px 3px 6px #d9dade,
+                        -3px -3px 6px #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .seat:hover {
             transform: scale(1.05);
         }
+
+        .seat.occupied {
+            background: #ff7675;
+            color: white;
+        }
+
+        .seat.selected {
+            background: #55efc4;
+            color: white;
+            box-shadow: inset 3px 3px 6px rgba(0,0,0,0.1),
+                        inset -3px -3px 6px rgba(255,255,255,0.3);
+        }
+
+        .seat::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateX(-100%);
+            transition: all 0.3s ease;
+        }
+
+        .seat:hover::after {
+            transform: translateX(0);
+        }
+
         .nav-link {
             position: relative;
         }
+
         .nav-link::after {
             content: '';
             position: absolute;
+            bottom: -5px;
+            left: 0;
             width: 0;
             height: 2px;
-            bottom: 0;
-            left: 0;
-            background-color: white;
+            background: var(--primary);
             transition: width 0.3s ease;
         }
+
         .nav-link:hover::after {
             width: 100%;
         }
-        .owner-card {
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+        .active-nav::after {
+            width: 100%;
         }
-        .owner-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .shorthand-card {
+            perspective: 1000px;
+        }
+
+        .shorthand-inner {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .shorthand-card:hover .shorthand-inner {
+            transform: rotateY(180deg);
+        }
+
+        .shorthand-front, .shorthand-back {
+            backface-visibility: hidden;
+        }
+
+        .shorthand-back {
+            transform: rotateY(180deg);
+        }
+
+        .neumorphic-input {
+            border-radius: 10px;
+            background: #e0e5ec;
+            box-shadow: inset 3px 3px 6px #bebebe,
+                        -3px -3px 6px #ffffff;
+            border: 1px solid rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .neumorphic-input:focus {
+            outline: none;
+            box-shadow: inset 5px 5px 10px #bebebe,
+                        inset -5px -5px 10px #ffffff;
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+
+        .show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Seat grid styles */
+        #seatGrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+            gap: 8px;
+            width: 100%;
+        }
+
+        @media (min-width: 640px) {
+            #seatGrid {
+                grid-template-columns: repeat(8, 1fr);
+                gap: 10px;
+            }
+
+            .seat {
+                font-size: 0.875rem;
+            }
+        }
+
+        @media (max-width: 639px) {
+            #seatGrid {
+                grid-template-columns: repeat(6, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            #seatGrid {
+                grid-template-columns: repeat(5, 1fr);
+                gap: 6px;
+            }
+
+            .seat {
+                font-size: 0.7rem;
+            }
+        }
+
+        @media (max-width: 360px) {
+            #seatGrid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .auth-form {
+            transition: all 0.3s ease;
+        }
+
+        #authModal {
+            animation: fadeIn 0.3s ease;
+        }
+
+        .auth-toggle {
+            cursor: pointer;
+            color: var(--primary);
+            text-decoration: underline;
+        }
+
+        .auth-toggle:hover {
+            color: #5a4fc2;
+        }
+
+        .login-prompt {
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* New animations for login button and lock icon */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .login-btn-animated {
+            transition: all 0.3s ease;
+            transform-origin: center;
+        }
+
+        .login-btn-animated:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(108, 92, 231, 0.2);
+        }
+
+        /* Onboarding form styles */
+        #onboardingModal {
+            animation: fadeIn 0.3s ease;
+        }
+
+        .form-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-section-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+        }
+
+        .form-section-title i {
+            margin-right: 0.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            gap: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .form-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .form-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+        }
+
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .success-message i {
+            font-size: 3rem;
+            color: #4CAF50;
+            margin-bottom: 1rem;
+        }
+
+        /* Attendance Section Styles */
+        #attendance {
+            background-color: var(--light);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow:  4px 4px 8px rgba(217, 218, 222, 0.5),
+                        -4px -4px 8px rgba(255, 255, 255, 0.5);
+        }
+
+        #attendance h2 {
+            color: var(--dark);
+            margin-bottom: 1.5rem;
+        }
+
+        #attendance-form {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        #attendanceMessage {
+            margin-top: 1rem;
+        }
+
+        #attendanceSuccess {
+            color: #4CAF50;
+        }
+
+        #attendanceError {
+            color: #F44336;
+        }
+
+        /* Student Info Section Styles */
+        #studentInfo {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background-color: var(--light);
+            border-radius: 12px;
+            box-shadow:  4px 4px 8px rgba(217, 218, 222, 0.5),
+                        -4px -4px 8px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Graph Section Styles */
+        #attendanceChartContainer {
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: var(--light);
+            border-radius: 16px;
+            box-shadow:  4px 4px 8px rgba(217, 218, 222, 0.5),
+                        -4px -4px 8px rgba(255, 255, 255, 0.5);
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* Add margin to both forms */
+        #authModal .neumorphic {
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+
+        #onboardingModal .neumorphic {
+            margin-left: 5px;
+            margin-right: 5px;
         }
     </style>
 </head>
-<body class="font-sans bg-gray-50">
-    <!-- Header/Navigation -->
-    <header class="gradient-bg text-white shadow-lg">
-        <div class="container mx-auto px-4 py-6">
-            <div class="flex justify-between items-center">
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-book-open text-3xl"></i>
-                    <h1 class="text-2xl md:text-3xl font-bold">Librain</h1>
-                </div>
-                <nav class="hidden md:flex space-x-8">
-                    <a href="#home" class="nav-link">Home</a>
-                    <a href="#features" class="nav-link">Features</a>
-                    <a href="#timings" class="nav-link">Timings</a>
-                    <a href="#location" class="nav-link">Location</a>
-                    <a href="#about" class="nav-link">About Us</a>
-                    <a href="#contact" class="nav-link">Contact</a>
-                </nav>
-                <div class="flex items-center space-x-4">
-                    <button onclick="showLoginModal()" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition">Login</button>
-                    <button class="md:hidden" id="mobile-menu-button">
-                        <i class="fas fa-bars text-2xl"></i>
-                    </button>
-                </div>
+<body class="min-h-screen" oncontextmenu="return false;">
+    <!-- Header -->
+    <header class="py-4 px-4 md:px-12">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center header-logo">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-indigo-600 flex items-center justify-center text-white text-lg font-bold mr-3 neumorphic">RK</div>
+                <h1 class="text-xl md:text-2xl font-bold text-gray-800">Librain</h1>
             </div>
-        </div>
-
-        <!-- Mobile Menu -->
-        <div class="md:hidden hidden bg-blue-900 text-white py-4 px-4" id="mobile-menu">
-            <div class="flex flex-col space-y-4">
-                <a href="#home" class="block py-2">Home</a>
-                <a href="#features" class="block py-2">Features</a>
-                <a href="#timings" class="block py-2">Timings</a>
-                <a href="#location" class="block py-2">Location</a>
-                <a href="#about" class="block py-2">About Us</a>
-                <a href="#contact" class="block py-2">Contact</a>
+            <div class="flex items-center space-x-4">
+                <button class="neumorphic-btn px-4 py-2 text-gray-700 logout-btn hidden">
+                    <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                </button>
+                <button class="neumorphic-btn px-4 py-2 bg-purple-600 text-white" id="openOnboarding">
+                    <i class="fas fa-user-plus mr-2"></i> Join Library
+                </button>
             </div>
         </div>
     </header>
 
-    <!-- Hero Section -->
-    <section id="home" class="gradient-bg text-white py-20">
-        <div class="container mx-auto px-4 flex flex-col md:flex-row items-center">
-            <div class="md:w-1/2 mb-10 md:mb-0">
-                <h1 class="text-4xl md:text-6xl font-bold mb-6">Your Perfect <span class="text-yellow-300">Study Space</span></h1>
-                <p class="text-xl mb-8">Librain offers a serene environment with premium facilities for students, professionals, and book lovers.</p>
-                <div class="flex space-x-4">
-                    <button onclick="showBookingModal()" class="bg-yellow-400 text-blue-900 px-6 py-3 rounded-lg font-bold hover:bg-yellow-300 transition">Book Now</button>
-                    <button onclick="scrollToSection('features')" class="border-2 border-white px-6 py-3 rounded-lg font-bold hover:bg-white hover:text-blue-900 transition">Learn More</button>
-                </div>
-            </div>
-            <div class="md:w-1/2 flex justify-center">
-                <img src="https://images.unsplash.com/photo-1555421689-3f034debb7a6" alt="Library Illustration" class="w-full max-w-md rounded-xl shadow-lg floating">
-            </div>
-        </div>
-    </section>
+    <!-- Auth Modal -->
+    <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+        <div class="neumorphic p-6 md:p-8 rounded-2xl w-full max-w-md relative">
+            <button id="closeAuthModal" class="absolute top-4 right-4 neumorphic-btn p-2">
+                <i class="fas fa-times"></i>
+            </button>
 
-    <!-- Features Section -->
-    <section id="features" class="py-20 bg-white">
-        <div class="container mx-auto px-4">
-            <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">Our Premium Facilities</h2>
-            <p class="text-gray-600 text-center max-w-2xl mx-auto mb-16">Experience the best study environment with our state-of-the-art facilities</p>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="bg-gray-50 p-8 rounded-xl shadow-md hover:shadow-xl transition">
-                    <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
-                        <i class="fas fa-wifi text-blue-600 text-2xl"></i>
+            <!-- Login Form -->
+            <div id="loginForm" class="auth-form">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Login</h2>
+                <form id="login-form" class="space-y-4">
+                    <div>
+                        <label class="block text-gray-700 mb-2">Email</label>
+                        <input type="email" id="loginEmail" class="neumorphic-inset w-full px-4 py-2 rounded-lg" placeholder="Enter your email" required>
                     </div>
-                    <h3 class="text-xl font-bold mb-3">High-Speed WiFi</h3>
-                    <p class="text-gray-600">Uninterrupted 100 Mbps internet connection for all your research and study needs.</p>
-                </div>
-
-                <div class="bg-gray-50 p-8 rounded-xl shadow-md hover:shadow-xl transition">
-                    <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
-                        <i class="fas fa-coffee text-green-600 text-2xl"></i>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Password</label>
+                        <input type="password" id="loginPassword" class="neumorphic-inset w-full px-4 py-2 rounded-lg" placeholder="Enter your password" required>
                     </div>
-                    <h3 class="text-xl font-bold mb-3">Cafeteria</h3>
-                    <p class="text-gray-600">Healthy snacks and beverages available to keep you energized throughout your study session.</p>
-                </div>
-
-                <div class="bg-gray-50 p-8 rounded-xl shadow-md hover:shadow-xl transition">
-                    <div class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
-                        <i class="fas fa-book text-purple-600 text-2xl"></i>
-                    </div>
-                    <h3 class="text-xl font-bold mb-3">Extensive Collection</h3>
-                    <p class="text-gray-600">Over 10,000 books across various genres and academic disciplines.</p>
-                </div>
-
-                <div class="bg-gray-50 p-8 rounded-xl shadow-md hover:shadow-xl transition">
-                    <div class="bg-yellow-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
-                        <i class="fas fa-headphones text-yellow-600 text-2xl"></i>
-                    </div>
-                    <h3 class="text-xl font-bold mb-3">Silent Zones</h3>
-                    <p class="text-gray-600">Dedicated quiet areas with soundproofing for maximum concentration.</p>
-                </div>
-
-                <div class="bg-gray-50 p-8 rounded-xl shadow-md hover:shadow-xl transition">
-                    <div class="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
-                        <i class="fas fa-laptop text-red-600 text-2xl"></i>
-                    </div>
-                    <h3 class="text-xl font-bold mb-3">Tech Stations</h3>
-                    <p class="text-gray-600">Modern computers and printing facilities available for members.</p>
-                </div>
-
-                <div class="bg-gray-50 p-8 rounded-xl shadow-md hover:shadow-xl transition">
-                    <div class="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
-                        <i class="fas fa-users text-indigo-600 text-2xl"></i>
-                    </div>
-                    <h3 class="text-xl font-bold mb-3">Study Groups</h3>
-                    <p class="text-gray-600">Dedicated spaces for collaborative learning and group discussions.</p>
-                </div>
+                    <button type="submit" id="loginBtn" class="neumorphic-btn w-full py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-medium rounded-lg">
+                        <span id="loginText">Login</span>
+                        <span id="loginSpinner" class="hidden ml-2">
+                            <div class="spinner"></div>
+                        </span>
+                    </button>
+                </form>
             </div>
         </div>
-    </section>
+    </div>
 
-    <!-- Timing Slots Section -->
-    <section id="timings" class="py-20 bg-gray-100">
-        <div class="container mx-auto px-4">
-            <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">Flexible Timing Options</h2>
-            <p class="text-gray-600 text-center max-w-2xl mx-auto mb-16">Choose the duration that fits your schedule</p>
+    <!-- Onboarding Modal -->
+    <div id="onboardingModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+        <div class="neumorphic p-6 md:p-8 rounded-2xl w-full max-w-3xl relative max-h-[90vh] overflow-y-auto">
+            <button id="closeOnboardingModal" class="absolute top-4 right-4 neumorphic-btn p-2">
+                <i class="fas fa-times"></i>
+            </button>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-                <div class="bg-white p-8 rounded-xl shadow-md timing-slot transition text-center">
-                    <div class="bg-blue-100 w-24 h-24 rounded-full flex items-center justify-center mb-6 mx-auto">
-                        <i class="fas fa-clock text-blue-600 text-4xl"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold mb-3">6-Hour Slot</h3>
-                    <p class="text-gray-600 mb-6">Perfect for focused study sessions</p>
-                    <div class="text-4xl font-bold text-blue-600 mb-6">₹500</div>
-                    <ul class="text-left mb-8 space-y-2">
-                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> 6 hours of uninterrupted study</li>
-                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Free WiFi access</li>
-                    </ul>
-                    <button onclick="showBookingModal('6-hour slot')" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition w-full">Book Now</button>
-                </div>
-
-                <div class="bg-white p-8 rounded-xl shadow-xl timing-slot transition text-center border-2 border-yellow-400 transform scale-105">
-                    <div class="bg-yellow-100 w-24 h-24 rounded-full flex items-center justify-center mb-6 mx-auto">
-                        <i class="fas fa-sun text-yellow-600 text-4xl"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold mb-3">12-Hour Slot</h3>
-                    <p class="text-gray-600 mb-6">Ideal for full-day study marathons</p>
-                    <div class="text-4xl font-bold text-yellow-600 mb-6">₹800</div>
-                    <ul class="text-left mb-8 space-y-2">
-                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> 12 hours of study time</li>
-                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Premium WiFi access</li>
-                    </ul>
-                    <button onclick="showBookingModal('12-hour slot')" class="bg-yellow-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-yellow-600 transition w-full">Book Now</button>
-                </div>
-
-                <div class="bg-white p-8 rounded-xl shadow-md timing-slot transition text-center">
-                    <div class="bg-purple-100 w-24 h-24 rounded-full flex items-center justify-center mb-6 mx-auto">
-                        <i class="fas fa-calendar-day text-purple-600 text-4xl"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold mb-3">Shorthand + Library</h3>
-                    <p class="text-gray-600 mb-6">For regular visitors</p>
-                    <div class="text-4xl font-bold text-purple-600 mb-6">₹2800</div>
-                    <ul class="text-left mb-8 space-y-2">
-                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Unlimited access for 30 days</li>
-                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Priority WiFi bandwidth</li>
-                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Daily complimentary beverage</li>
-                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> 30% discount on cafeteria</li>
-                    </ul>
-                    <button onclick="showBookingModal('Monthly pass')" class="bg-purple-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-purple-700 transition w-full">Book Now</button>
-                </div>
-            </div>
-
-            <div class="mt-16 bg-white p-8 rounded-xl shadow-md max-w-4xl mx-auto">
-                <h3 class="text-2xl font-bold mb-4 text-center">Regular Opening Hours</h3>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="font-bold">Monday</div>
-                        <div>8:00 AM - 8:00 PM</div>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="font-bold">Tuesday</div>
-                        <div>8:00 AM - 8:00 PM</div>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="font-bold">Wednesday</div>
-                        <div>8:00 AM - 8:00 PM</div>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="font-bold">Thursday</div>
-                        <div>8:00 AM - 8:00 PM</div>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="font-bold">Friday</div>
-                        <div>8:00 AM - 8:00 PM</div>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="font-bold">Saturday</div>
-                        <div>9:00 AM - 8:00 PM</div>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="font-bold">Sunday</div>
-                        <div>9:00 AM - 6:00 PM</div>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="font-bold">Holidays</div>
-                        <div>10:00 AM - 4:00 PM</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Location Section -->
-    <section id="location" class="py-20 bg-white">
-        <div class="container mx-auto px-4">
-            <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">Our Location</h2>
-            <p class="text-gray-600 text-center max-w-2xl mx-auto mb-16">Visit us at our convenient location in the heart of the city</p>
-
-            <div class="flex flex-col md:flex-row items-center">
-                <div class="md:w-1/2 mb-8 md:mb-0 md:pr-8">
-                    <div class="bg-gray-100 p-6 rounded-xl shadow-md">
-                        <h3 class="text-xl font-bold mb-4">Address</h3>
-                        <p class="mb-4"><i class="fas fa-map-marker-alt text-blue-600 mr-2"></i> Metro Pillar No 849, Ganga Annexe, 2nd Floor, Near Sangam Lab, Opposite Jhajjar Mod, Bahadurgarh, Haryana - 124507</p>
-
-                        <h3 class="text-xl font-bold mb-4 mt-6">Transport Options</h3>
-                        <div class="space-y-3">
-                            <p><i class="fas fa-subway text-purple-600 mr-2"></i> Nearest Metro: Brigadier Hoshiar Singh (450m)</p>
-                            <p><i class="fas fa-bus text-green-600 mr-2"></i> Bus Routes: 12A, 45B, 78D</p>
-                            <p><i class="fas fa-parking text-yellow-600 mr-2"></i> Parking: Available (Free)</p>
-                        </div>
-
-                        <h3 class="text-xl font-bold mb-4 mt-6">Landmarks</h3>
-                        <div class="space-y-2">
-                            <p>Jhajjar Mod</p>
-                            <p>Radha Ganga Arcade</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="md:w-1/2 h-96">
-                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1749.959325277304!2d76.92757274955507!3d28.69207997101917!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390d0923f88323c1%3A0x87f81533f3e6481b!2sLibrain%20-%20Powered%20by%20RK%20SHORTHAND!5e0!3m2!1sen!2sin!4v1748507488626!5m2!1sen!2sin" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" class="rounded-xl shadow-lg"></iframe>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- About Us Section -->
-    <section id="about" class="py-20 bg-gray-100">
-        <div class="container mx-auto px-4">
-            <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">About Librain</h2>
-            <p class="text-gray-600 text-center max-w-3xl mx-auto mb-16">Our story, mission, and the team behind your perfect study space</p>
-
-            <div class="flex flex-col md:flex-row items-center mb-16">
-                <div class="md:w-1/2 mb-8 md:mb-0 md:pr-12">
-                    <h3 class="text-2xl font-bold mb-4">Our Story</h3>
-                    <p class="text-gray-700 mb-4">Founded in 2018, Librain began as a small study space with just 10 desks and a dream to create the perfect environment for focused learning.</p>
-                    <p class="text-gray-700 mb-4">Today, we've grown into one of the city's most loved study spaces, serving over 5,000 students and professionals every month.</p>
-                    <p class="text-gray-700">Our name "Librain" combines "Library" and "Brain" - representing our commitment to nurturing minds through quality study environments.</p>
-                </div>
-                <div class="md:w-1/2">
-                    <img src="https://images.unsplash.com/photo-1579389083078-4e7018379f7e" alt="Library Interior" class="rounded-xl shadow-lg w-full">
-                </div>
-            </div>
-
-            <div class="flex flex-col md:flex-row items-center mb-16">
-                <div class="md:w-1/2 order-2 md:order-1">
-                    <img src="https://images.unsplash.com/photo-1579389083078-4e7018379f7e" alt="Team Photo" class="rounded-xl shadow-lg w-full">
-                </div>
-                <div class="md:w-1/2 mb-8 md:mb-0 md:pl-12 order-1 md:order-2">
-                    <h3 class="text-2xl font-bold mb-4">Our Team</h3>
-                    <p class="text-gray-700 mb-4">Our dedicated team of 15 professionals works round the clock to ensure your study experience is seamless and productive.</p>
-                    <p class="text-gray-700">From our friendly front desk staff to our meticulous maintenance crew, every Librain team member is committed to your comfort and success.</p>
-                </div>
-            </div>
-
-            <!-- Redesigned Ownership & Development Section -->
-            <div class="max-w-6xl mx-auto">
-                <h3 class="text-2xl font-bold mb-8 text-center">Ownership & Development</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="owner-card bg-white p-6 rounded-xl shadow-md flex flex-col md:flex-row items-center">
-                        <div class="md:w-1/3 mb-4 md:mb-0 flex justify-center">
-                            <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Owner" class="w-32 h-32 rounded-full object-cover border-4 border-blue-100">
-                        </div>
-                        <div class="md:w-2/3 md:pl-6 text-center md:text-left">
-                            <h4 class="font-bold text-xl mb-2">Varun Sharma</h4>
-                            <p class="text-blue-600 font-medium mb-3">Founder & Owner</p>
-                            <p class="text-gray-600">With over 5+ years in the education sector, RK Shorthand Institute envisioned Librain as a space where learning meets comfort. Hi, I'm Varun Sharma, the founder of Rk Institute of Shorthand Career, an innovative English Shorthand institute dedicated to revolutionizing the way we learn and communicate. With a passion for education and a commitment to excellence, I strive to empower students to achieve their full potential. My mission is to provide top-quality education that empowers individuals to communicate effectively and efficiently. Through the collaboration with PrepSteno powered by RK SHORTHAND, I aim to create a community of learners who are equipped with the skills they need to succeed in today's fast-paced world.</p>
-                            <div class="mt-4 flex justify-center md:justify-start space-x-3">
-                                <a href="#" class="text-blue-500 hover:text-blue-700"><i class="fab fa-linkedin-in"></i></a>
-                                <a href="#" class="text-blue-500 hover:text-blue-700"><i class="fab fa-twitter"></i></a>
-                                <a href="#" class="text-blue-500 hover:text-blue-700"><i class="fas fa-globe"></i></a>
+            <div id="onboardingForm">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Library Membership Form</h2>
+                <form id="member-form" class="space-y-4">
+                    <div class="form-section">
+                        <h3 class="form-section-title"><i class="fas fa-user"></i> Personal Information</h3>
+                        <div class="form-grid">
+                            <div>
+                                <label class="block text-gray-700 mb-2">Full Name*</label>
+                                <input type="text" id="fullName" class="neumorphic-inset w-full px-4 py-2 rounded-lg" placeholder="Enter your full name" required>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2">Father's Name*</label>
+                                <input type="text" id="fatherName" class="neumorphic-inset w-full px-4 py-2 rounded-lg" placeholder="Enter father's name" required>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2">Date of Birth*</label>
+                                <input type="date" id="dob" class="neumorphic-inset w-full px-4 py-2 rounded-lg" required>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2">Gender*</label>
+                                <select id="gender" class="neumorphic-inset w-full px-4 py-2 rounded-lg" required>
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
                             </div>
                         </div>
                     </div>
 
-                    <div class="owner-card bg-white p-6 rounded-xl shadow-md flex flex-col md:flex-row items-center">
-                        <div class="md:w-1/3 mb-4 md:mb-0 flex justify-center">
-                            <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Developer" class="w-32 h-32 rounded-full object-cover border-4 border-purple-100">
+                    <div class="form-section">
+                        <h3 class="form-section-title"><i class="fas fa-id-card"></i> Identification</h3>
+                        <div class="form-grid">
+                            <div>
+                                <label class="block text-gray-700 mb-2">Aadhaar Number*</label>
+                                <input type="text" id="aadhaar" class="neumorphic-inset w-full px-4 py-2 rounded-lg" placeholder="Enter 12-digit Aadhaar" pattern="[0-9]{12}" required>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2">PAN Number (Optional)</label>
+                                <input type="text" id="pan" class="neumorphic-inset w-full px-4 py-2 rounded-lg" placeholder="Enter PAN number">
+                            </div>
                         </div>
-                        <div class="md:w-2/3 md:pl-6 text-center md:text-left">
-                            <h4 class="font-bold text-xl mb-2">Akshar Chaudhary</h4>
-                            <p class="text-purple-600 font-medium mb-3">Management & Developer</p>
-                            <p class="text-gray-600">Hi, I'm Akshar Chaudhary, the developer of innovative PrepSteno windows software, the website, and the android application dedicated to revolutionizing digital experiences. With a passion for technology and a commitment to excellence, I strive to create intuitive and efficient solutions that empower users. My mission is to develop top-quality software that enhances productivity and communication. Through meticulous design and cutting-edge technology, I aim to build a portfolio of digital tools that meet the needs of users in today's fast-paced world.</p>
-                            <div class="mt-4 flex justify-center md:justify-start space-x-3">
-                                <a href="#" class="text-purple-500 hover:text-purple-700"><i class="fab fa-linkedin-in"></i></a>
-                                <a href="#" class="text-purple-500 hover:text-purple-700"><i class="fab fa-github"></i></a>
-                                <a href="#" class="text-purple-500 hover:text-purple-700"><i class="fas fa-globe"></i></a>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="form-section-title"><i class="fas fa-address-book"></i> Contact Information</h3>
+                        <div class="form-grid">
+                            <div>
+                                <label class="block text-gray-700 mb-2">Mobile Number*</label>
+                                <input type="tel" id="mobile" class="neumorphic-inset w-full px-4 py-2 rounded-lg" placeholder="Enter 10-digit mobile" pattern="[0-9]{10}" required>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2">Alternate Mobile (Optional)</label>
+                                <input type="tel" id="altMobile" class="neumorphic-inset w-full px-4 py-2 rounded-lg" placeholder="Alternate mobile">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2">Email*</label>
+                                <input type="email" id="email" class="neumorphic-inset w-full px-4 py-2 rounded-lg" placeholder="Enter your email" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="form-section-title"><i class="fas fa-map-marker-alt"></i> Address</h3>
+                        <div class="form-grid">
+                            <div class="col-span-2">
+                                <label class="block text-gray-700 mb-2">Full Address*</label>
+                                <textarea id="address" class="neumorphic-inset w-full px-4 py-2 rounded-lg" rows="3" placeholder="House no, street, area" required></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2">City*</label>
+                                <input type="text" id="city" class="neumorphic-inset w-full px-4 py-2 rounded-lg" placeholder="Enter city" required>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2">State*</label>
+                                <input type="text" id="state" class="neumorphic-inset w-full px-4 py-2 rounded-lg" placeholder="Enter state" required>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2">Pincode*</label>
+                                <input type="text" id="pincode" class="neumorphic-inset w-full px-4 py-2 rounded-lg" placeholder="Enter pincode" pattern="[0-9]{6}" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="form-section-title"><i class="fas fa-graduation-cap"></i> Education Details</h3>
+                        <div class="form-grid">
+                            <div>
+                                <label class="block text-gray-700 mb-2">Highest Qualification*</label>
+                                <select id="qualification" class="neumorphic-inset w-full px-4 py-2 rounded-lg" required>
+                                    <option value="">Select Qualification</option>
+                                    <option value="High School">High School</option>
+                                    <option value="Intermediate">Intermediate</option>
+                                    <option value="Graduate">Graduate</option>
+                                    <option value="Post Graduate">Post Graduate</option>
+                                    <option value="PhD">PhD</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2">Occupation*</label>
+                                <select id="occupation" class="neumorphic-inset w-full px-4 py-2 rounded-lg" required>
+                                    <option value="">Select Occupation</option>
+                                    <option value="Student">Student</option>
+                                    <option value="Teacher">Teacher</option>
+                                    <option value="Professional">Professional</option>
+                                    <option value="Business">Business</option>
+                                    <option value="Housewife">Housewife</option>
+                                    <option value="Retired">Retired</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-footer">
+                        <button type="button" id="cancelOnboarding" class="neumorphic-btn px-6 py-2 text-gray-700">
+                            Cancel
+                        </button>
+                        <button type="submit" id="submitMember" class="neumorphic-btn px-6 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white">
+                            <span id="submitMemberText">Submit Application</span>
+                            <span id="submitMemberSpinner" class="hidden ml-2">
+                                <div class="spinner"></div>
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="successMessage" class="success-message">
+                <i class="fas fa-check-circle"></i>
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">Application Submitted Successfully!</h3>
+                <p class="text-gray-600 mb-6">Thank you for applying for library membership. We will contact you soon.</p>
+                <button type="button" id="closeSuccess" class="neumorphic-btn px-6 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Section -->
+        <section id="home" class="gradient-bg text-white py-20">
+            <div class="container mx-auto px-4 flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 mb-10 md:mb-0">
+                    <h1 class="text-4xl md:text-6xl font-bold mb-6">Your Perfect <span class="text-yellow-300">Study Space</span></h1>
+                    <p class="text-xl mb-8">Librain offers a serene environment with premium facilities for students, professionals, and book lovers.</p>
+                    <div class="flex space-x-4">
+                        <button onclick="showBookingModal()" class="bg-yellow-400 text-blue-900 px-6 py-3 rounded-lg font-bold hover:bg-yellow-300 transition">Book Now</button>
+                        <button onclick="scrollToSection('features')" class="border-2 border-white px-6 py-3 rounded-lg font-bold hover:bg-white hover:text-blue-900 transition">Learn More</button>
+                    </div>
+                </div>
+                <div class="md:w-1/2 flex justify-center">
+                    <img src="https://images.unsplash.com/photo-1555421689-3f034debb7a6" alt="Library Illustration" class="w-full max-w-md rounded-xl shadow-lg floating">
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="py-20 bg-white">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">Our Premium Facilities</h2>
+                <p class="text-gray-600 text-center max-w-2xl mx-auto mb-16">Experience the best study environment with our state-of-the-art facilities</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-gray-50 p-8 rounded-xl shadow-md hover:shadow-xl transition">
+                        <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                            <i class="fas fa-wifi text-blue-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">High-Speed WiFi</h3>
+                        <p class="text-gray-600">Uninterrupted 100 Mbps internet connection for all your research and study needs.</p>
+                    </div>
+
+                    <div class="bg-gray-50 p-8 rounded-xl shadow-md hover:shadow-xl transition">
+                        <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                            <i class="fas fa-coffee text-green-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">Cafeteria</h3>
+                        <p class="text-gray-600">Healthy snacks and beverages available to keep you energized throughout your study session.</p>
+                    </div>
+
+                    <div class="bg-gray-50 p-8 rounded-xl shadow-md hover:shadow-xl transition">
+                        <div class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                            <i class="fas fa-book text-purple-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">Extensive Collection</h3>
+                        <p class="text-gray-600">Over 10,000 books across various genres and academic disciplines.</p>
+                    </div>
+
+                    <div class="bg-gray-50 p-8 rounded-xl shadow-md hover:shadow-xl transition">
+                        <div class="bg-yellow-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                            <i class="fas fa-headphones text-yellow-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">Silent Zones</h3>
+                        <p class="text-gray-600">Dedicated quiet areas with soundproofing for maximum concentration.</p>
+                    </div>
+
+                    <div class="bg-gray-50 p-8 rounded-xl shadow-md hover:shadow-xl transition">
+                        <div class="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                            <i class="fas fa-laptop text-red-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">Tech Stations</h3>
+                        <p class="text-gray-600">Modern computers and printing facilities available for members.</p>
+                    </div>
+
+                    <div class="bg-gray-50 p-8 rounded-xl shadow-md hover:shadow-xl transition">
+                        <div class="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                            <i class="fas fa-users text-indigo-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">Study Groups</h3>
+                        <p class="text-gray-600">Dedicated spaces for collaborative learning and group discussions.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Timing Slots Section -->
+        <section id="timings" class="py-20 bg-gray-100">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">Flexible Timing Options</h2>
+                <p class="text-gray-600 text-center max-w-2xl mx-auto mb-16">Choose the duration that fits your schedule</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                    <div class="bg-white p-8 rounded-xl shadow-md timing-slot transition text-center">
+                        <div class="bg-blue-100 w-24 h-24 rounded-full flex items-center justify-center mb-6 mx-auto">
+                            <i class="fas fa-clock text-blue-600 text-4xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-3">6-Hour Slot</h3>
+                        <p class="text-gray-600 mb-6">Perfect for focused study sessions</p>
+                        <div class="text-4xl font-bold text-blue-600 mb-6">₹500</div>
+                        <ul class="text-left mb-8 space-y-2">
+                            <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> 6 hours of uninterrupted study</li>
+                            <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Free WiFi access</li>
+                        </ul>
+                        <button onclick="showBookingModal('6-hour slot')" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition w-full">Book Now</button>
+                    </div>
+
+                    <div class="bg-white p-8 rounded-xl shadow-xl timing-slot transition text-center border-2 border-yellow-400 transform scale-105">
+                        <div class="bg-yellow-100 w-24 h-24 rounded-full flex items-center justify-center mb-6 mx-auto">
+                            <i class="fas fa-sun text-yellow-600 text-4xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-3">12-Hour Slot</h3>
+                        <p class="text-gray-600 mb-6">Ideal for full-day study marathons</p>
+                        <div class="text-4xl font-bold text-yellow-600 mb-6">₹800</div>
+                        <ul class="text-left mb-8 space-y-2">
+                            <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> 12 hours of study time</li>
+                            <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Premium WiFi access</li>
+                        </ul>
+                        <button onclick="showBookingModal('12-hour slot')" class="bg-yellow-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-yellow-600 transition w-full">Book Now</button>
+                    </div>
+
+                    <div class="bg-white p-8 rounded-xl shadow-md timing-slot transition text-center">
+                        <div class="bg-purple-100 w-24 h-24 rounded-full flex items-center justify-center mb-6 mx-auto">
+                            <i class="fas fa-calendar-day text-purple-600 text-4xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-3">Monthly Pass</h3>
+                        <p class="text-gray-600 mb-6">For regular visitors</p>
+                        <div class="text-4xl font-bold text-purple-600 mb-6">₹2000</div>
+                        <ul class="text-left mb-8 space-y-2">
+                            <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Unlimited access for 30 days</li>
+                            <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Priority WiFi bandwidth</li>
+                            <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Daily complimentary beverage</li>
+                            <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> 30% discount on cafeteria</li>
+                        </ul>
+                        <button onclick="showBookingModal('Monthly pass')" class="bg-purple-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-purple-700 transition w-full">Book Now</button>
+                    </div>
+                </div>
+
+                <div class="mt-16 bg-white p-8 rounded-xl shadow-md max-w-4xl mx-auto">
+                    <h3 class="text-2xl font-bold mb-4 text-center">Regular Opening Hours</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="font-bold">Monday</div>
+                            <div>8:00 AM - 8:00 PM</div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="font-bold">Tuesday</div>
+                            <div>8:00 AM - 8:00 PM</div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="font-bold">Wednesday</div>
+                            <div>8:00 AM - 8:00 PM</div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="font-bold">Thursday</div>
+                            <div>8:00 AM - 8:00 PM</div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="font-bold">Friday</div>
+                            <div>8:00 AM - 8:00 PM</div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="font-bold">Saturday</div>
+                            <div>9:00 AM - 8:00 PM</div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="font-bold">Sunday</div>
+                            <div>9:00 AM - 6:00 PM</div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="font-bold">Holidays</div>
+                            <div>10:00 AM - 4:00 PM</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Location Section -->
+        <section id="location" class="py-20 bg-white">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">Our Location</h2>
+                <p class="text-gray-600 text-center max-w-2xl mx-auto mb-16">Visit us at our convenient location in the heart of the city</p>
+
+                <div class="flex flex-col md:flex-row items-center">
+                    <div class="md:w-1/2 mb-8 md:mb-0 md:pr-8">
+                        <div class="bg-gray-100 p-6 rounded-xl shadow-md">
+                            <h3 class="text-xl font-bold mb-4">Address</h3>
+                            <p class="mb-4"><i class="fas fa-map-marker-alt text-blue-600 mr-2"></i> Metro Pillar No 849, Ganga Annexe, 2nd Floor, Near Sangam Lab, Opposite Jhajjar Mod, Bahadurgarh, Haryana - 124507</p>
+
+                            <h3 class="text-xl font-bold mb-4 mt-6">Transport Options</h3>
+                            <div class="space-y-3">
+                                <p><i class="fas fa-subway text-purple-600 mr-2"></i> Nearest Metro: Brigadier Hoshiar Singh (450m)</p>
+                                <p><i class="fas fa-bus text-green-600 mr-2"></i> Bus Routes: 12A, 45B, 78D</p>
+                                <p><i class="fas fa-parking text-yellow-600 mr-2"></i> Parking: Available (Free)</p>
+                            </div>
+
+                            <h3 class="text-xl font-bold mb-4 mt-6">Landmarks</h3>
+                            <div class="space-y-2">
+                                <p>Jhajjar Mod</p>
+                                <p>Radha Ganga Arcade</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="md:w-1/2 h-96">
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1749.959325277304!2d76.92757274955507!3d28.69207997101917!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390d0923f88323c1%3A0x87f81533f3e6481b!2sLibrain%20-%20Powered%20by%20RK%20SHORTHAND!5e0!3m2!1sen!2sin!4v1748507488626!5m2!1sen!2sin" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" class="rounded-xl shadow-lg"></iframe>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Us Section -->
+        <section id="about" class="py-20 bg-gray-100">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">About Librain</h2>
+                <p class="text-gray-600 text-center max-w-3xl mx-auto mb-16">Our story, mission, and the team behind your perfect study space</p>
+
+                <div class="flex flex-col md:flex-row items-center mb-16">
+                    <div class="md:w-1/2 mb-8 md:mb-0 md:pr-12">
+                        <h3 class="text-2xl font-bold mb-4">Our Story</h3>
+                        <p class="text-gray-700 mb-4">Founded in 2018, Librain began as a small study space with just 10 desks and a dream to create the perfect environment for focused learning.</p>
+                        <p class="text-gray-700 mb-4">Today, we've grown into one of the city's most loved study spaces, serving over 5,000 students and professionals every month.</p>
+                        <p class="text-gray-700">Our name "Librain" combines "Library" and "Brain" - representing our commitment to nurturing minds through quality study environments.</p>
+                    </div>
+                    <div class="md:w-1/2">
+                        <img src="https://images.unsplash.com/photo-1579389083078-4e7018379f7e" alt="Library Interior" class="rounded-xl shadow-lg w-full">
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row items-center mb-16">
+                    <div class="md:w-1/2 order-2 md:order-1">
+                        <img src="https://images.unsplash.com/photo-1579389083078-4e7018379f7e" alt="Team Photo" class="rounded-xl shadow-lg w-full">
+                    </div>
+                    <div class="md:w-1/2 mb-8 md:mb-0 md:pl-12 order-1 md:order-2">
+                        <h3 class="text-2xl font-bold mb-4">Our Team</h3>
+                        <p class="text-gray-700 mb-4">Our dedicated team of 15 professionals works round the clock to ensure your study experience is seamless and productive.</p>
+                        <p class="text-gray-700">From our friendly front desk staff to our meticulous maintenance crew, every Librain team member is committed to your comfort and success.</p>
+                    </div>
+                </div>
+
+                <!-- Redesigned Ownership & Development Section -->
+                <div class="max-w-6xl mx-auto">
+                    <h3 class="text-2xl font-bold mb-8 text-center">Ownership & Development</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="owner-card bg-white p-6 rounded-xl shadow-md flex flex-col md:flex-row items-center">
+                            <div class="md:w-1/3 mb-4 md:mb-0 flex justify-center">
+                                <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Owner" class="w-32 h-32 rounded-full object-cover border-4 border-blue-100">
+                            </div>
+                            <div class="md:w-2/3 md:pl-6 text-center md:text-left">
+                                <h4 class="font-bold text-xl mb-2">Varun Sharma</h4>
+                                <p class="text-blue-600 font-medium mb-3">Founder & Owner</p>
+                                <p class="text-gray-600">With over 5+ years in the education sector, RK Shorthand Institute envisioned Librain as a space where learning meets comfort. Hi, I'm Varun Sharma, the founder of Rk Institute of Shorthand Career, an innovative English Shorthand institute dedicated to revolutionizing the way we learn and communicate. With a passion for education and a commitment to excellence, I strive to empower students to achieve their full potential. My mission is to provide top-quality education that empowers individuals to communicate effectively and efficiently. Through the collaboration with PrepSteno powered by RK SHORTHAND, I aim to create a community of learners who are equipped with the skills they need to succeed in today's fast-paced world.</p>
+                                <div class="mt-4 flex justify-center md:justify-start space-x-3">
+                                    <a href="#" class="text-blue-500 hover:text-blue-700"><i class="fab fa-linkedin-in"></i></a>
+                                    <a href="#" class="text-blue-500 hover:text-blue-700"><i class="fab fa-twitter"></i></a>
+                                    <a href="#" class="text-blue-500 hover:text-blue-700"><i class="fas fa-globe"></i></a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="owner-card bg-white p-6 rounded-xl shadow-md flex flex-col md:flex-row items-center">
+                            <div class="md:w-1/3 mb-4 md:mb-0 flex justify-center">
+                                <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Developer" class="w-32 h-32 rounded-full object-cover border-4 border-purple-100">
+                            </div>
+                            <div class="md:w-2/3 md:pl-6 text-center md:text-left">
+                                <h4 class="font-bold text-xl mb-2">Akshar Chaudhary</h4>
+                                <p class="text-purple-600 font-medium mb-3">Management & Developer</p>
+                                <p class="text-gray-600">Hi, I'm Akshar Chaudhary, the developer of innovative PrepSteno windows software, the website, and the android application dedicated to revolutionizing digital experiences. With a passion for technology and a commitment to excellence, I strive to create intuitive and efficient solutions that empower users. My mission is to develop top-quality software that enhances productivity and communication. Through meticulous design and cutting-edge technology, I aim to build a portfolio of digital tools that meet the needs of users in today's fast-paced world.</p>
+                                <div class="mt-4 flex justify-center md:justify-start space-x-3">
+                                    <a href="#" class="text-purple-500 hover:text-purple-700"><i class="fab fa-linkedin-in"></i></a>
+                                    <a href="#" class="text-purple-500 hover:text-purple-700"><i class="fab fa-github"></i></a>
+                                    <a href="#" class="text-purple-500 hover:text-purple-700"><i class="fas fa-globe"></i></a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -462,31 +987,142 @@
         </div>
     </section>
 
-    <!-- Login Modal -->
-    <div id="login-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-2xl font-bold">Member Login</h3>
-                <button onclick="hideLoginModal()" class="text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-times"></i>
-                </button>
+    <!-- Library Section -->
+    <section id="library" class="py-12 md:py-16 px-4 md:px-12">
+        <div class="container mx-auto">
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6 md:mb-8 text-center">Library Seat Management</h2>
+
+            <div class="flex flex-col md:flex-row gap-6 md:gap-8">
+                <div class="md:w-2/3">
+                    <div class="neumorphic p-4 md:p-6 rounded-2xl mb-4 md:mb-6">
+                        <div class="flex flex-col sm:flex-row justify-between items-center mb-4 md:mb-6">
+                            <h3 class="text-lg md:text-xl font-bold text-gray-800 mb-2 sm:mb-0"></h3>
+                            <div class="flex items-center space-x-3 md:space-x-4">
+                                <span class="flex items-center text-sm md:text-base">
+                                    <span class="w-3 h-3 md:w-4 md:h-4 rounded-full bg-green-500 mr-1 md:mr-2"></span> Available
+                                </span>
+                                <span class="flex items-center text-sm md:text-base">
+                                    <span class="w-3 h-3 md:w-4 md:h-4 rounded-full bg-red-500 mr-1 md:mr-2"></span> Occupied
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Login Prompt (shown when not logged in) -->
+                        <div id="loginPrompt" class="login-prompt">
+                            <i class="fas fa-lock text-4xl text-purple-600 mb-4 float-animation"></i>
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">Please Login to View Seats</h3>
+                            <button class="neumorphic-btn px-6 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white login-btn login-btn-animated pulse-animation">
+                                <i class="fas fa-sign-in-alt mr-2"></i> Login Now
+                            </button>
+                        </div>
+
+                        <!-- Seat Grid (shown when logged in) -->
+                        <div id="seatGridContainer" class="hidden">
+                            <div class="grid" id="seatGrid">
+                                <div class="text-center">
+                                    <div class="spinner mx-auto"></div>
+                                    <p class="text-gray-500 mt-2">Loading seats...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="md:w-1/3">
+                    <div id="seatInfoContainer" class="hidden">
+                        <div class="neumorphic p-4 md:p-6 rounded-2xl sticky top-4 md:top-6">
+                            <h3 class="text-lg md:text-xl font-bold text-gray-800 mb-3 md:mb-4">Seat Information</h3>
+                            <div id="seatInfo" class="neumorphic-inset p-3 md:p-4 rounded-lg mb-4 md:mb-6 min-h-32 md:min-h-40">
+                                <p class="text-gray-500 text-center py-8 md:py-12 text-sm md:text-base">Select a seat to view details</p>
+                            </div>
+
+                            <h3 class="text-lg md:text-xl font-bold text-gray-800 mb-3 md:mb-4">Manage Seat</h3>
+                            <form id="seatForm" class="space-y-3 md:space-y-4">
+                                <div>
+                                    <label class="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">Student Name</label>
+                                    <input type="text" id="studentName" class="neumorphic-inset w-full px-3 py-2 md:px-4 md:py-2 rounded-lg text-sm md:text-base" placeholder="Enter name" required>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">Roll Number</label>
+                                    <input type="text" id="studentRoll" class="neumorphic-inset w-full px-3 py-2 md:px-4 md:py-2 rounded-lg text-sm md:text-base" placeholder="Enter roll number" required>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">Email</label>
+                                    <input type="email" id="studentEmail" class="neumorphic-inset w-full px-3 py-2 md:px-4 md:py-2 rounded-lg text-sm md:text-base" placeholder="Enter email" required>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">Phone</label>
+                                    <input type="tel" id="studentPhone" class="neumorphic-inset w-full px-3 py-2 md:px-4 md:py-2 rounded-lg text-sm md:text-base" placeholder="Enter phone number" required>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">Joining Date</label>
+                                    <input type="date" id="joiningDate" class="neumorphic-inset w-full px-3 py-2 md:px-4 md:py-2 rounded-lg text-sm md:text-base" required>
+                                </div>
+                                <div class="flex space-x-2 md:space-x-3 pt-1 md:pt-2">
+                                    <button type="button" id="assignBtn" class="neumorphic-btn flex-1 px-3 py-2 md:px-4 md:py-2 bg-green-500 text-white text-sm md:text-base flex items-center justify-center">
+                                        <span id="assignText">Assign</span>
+                                        <span id="assignSpinner" class="hidden ml-2">
+                                            <div class="spinner"></div>
+                                        </span>
+                                    </button>
+                                    <button type="button" id="vacateBtn" class="neumorphic-btn flex-1 px-3 py-2 md:px-4 md:py-2 bg-red-500 text-white text-sm md:text-base flex items-center justify-center">
+                                        <span id="vacateText">Vacate</span>
+                                        <span id="vacateSpinner" class="hidden ml-2">
+                                            <div class="spinner"></div>
+                                        </span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <form id="login-form">
-                <div class="mb-4">
-                    <label for="login-email" class="block text-gray-700 mb-2">Email</label>
-                    <input type="email" id="login-email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                </div>
-                <div class="mb-6">
-                    <label for="login-password" class="block text-gray-700 mb-2">Password</label>
-                    <input type="password" id="login-password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                </div>
-                <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition w-full mb-4">Login</button>
-                <div class="text-center">
-                    <a href="#" class="text-blue-600 hover:underline">Forgot password?</a>
-                </div>
-            </form>
         </div>
-    </div>
+    </section>
+
+    <!-- Attendance Section -->
+    <section id="attendance" class="py-12 md:py-16 px-4 md:px-12">
+        <div class="container mx-auto">
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6 md:mb-8 text-center">Mark Attendance</h2>
+            <div class="neumorphic p-4 md:p-6 rounded-2xl max-w-md mx-auto">
+                <form id="attendance-form" class="space-y-4">
+                    <div>
+                        <label class="block text-gray-700 mb-2">Roll Number</label>
+                        <input type="text" id="rollNumber" class="neumorphic-inset w-full px-4 py-2 rounded-lg" placeholder="Enter your roll number" maxlength="6" required>
+                    </div>
+                    <button type="submit" id="markAttendanceBtn" class="neumorphic-btn w-full py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-medium rounded-lg">
+                        <span id="markAttendanceText">Mark Attendance</span>
+                        <span id="markAttendanceSpinner" class="hidden ml-2">
+                            <div class="spinner"></div>
+                        </span>
+                    </button>
+                </form>
+                <div id="attendanceMessage" class="text-center mt-4 hidden">
+                    <p id="attendanceSuccess" class="text-green-500"></p>
+                    <p id="attendanceError" class="text-red-500"></p>
+                </div>
+                <!-- Student Info Section -->
+                <div id="studentInfo" class="text-center mb-4 hidden">
+                    <p><strong>Student Name:</strong> <span id="studentNameDisplay"></span></p>
+                    <p><strong>Seat Number:</strong> <span id="seatNumberDisplay"></span></p>
+                </div>
+                <!-- Attendance Graph Section -->
+                <div id="attendanceChartContainer" class="hidden">
+                    <canvas id="attendanceChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-8 md:py-12 px-4 md:px-12 bg-gray-100">
+        <div class="container mx-auto">
+            <div class="pt-6 md:pt-8 border-t border-gray-200 text-center">
+                <p class="text-gray-600 text-xs md:text-sm">© 2023 Librain - Powered by RK SHORTHAND. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
 
     <!-- Booking Modal -->
     <div id="booking-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -523,97 +1159,11 @@
         </div>
     </div>
 
-    <!-- Attendance Modal -->
-    <div id="attendance-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-2xl font-bold">Mark Attendance</h3>
-                <button onclick="hideAttendanceModal()" class="text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <form id="attendance-form">
-                <div class="mb-4">
-                    <label for="member-id" class="block text-gray-700 mb-2">Member ID</label>
-                    <input type="text" id="member-id" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                </div>
-                <div class="mb-6">
-                    <label for="attendance-date" class="block text-gray-700 mb-2">Date</label>
-                    <input type="date" id="attendance-date" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                </div>
-                <button type="submit" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 transition w-full">Submit Attendance</button>
-            </form>
-        </div>
-    </div>
-
     <!-- Success Toast -->
     <div id="success-toast" class="hidden fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center">
         <i class="fas fa-check-circle mr-2"></i>
         <span id="success-message">Operation completed successfully!</span>
     </div>
-
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-white py-12">
-        <div class="container mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <div>
-                    <div class="flex items-center space-x-2 mb-4">
-                        <i class="fas fa-book-open text-2xl"></i>
-                        <h3 class="text-xl font-bold">Librain</h3>
-                    </div>
-                    <p class="text-gray-400">Your perfect study space in the heart of the city. We provide the ideal environment for focused learning and productivity.</p>
-                </div>
-
-                <div>
-                    <h4 class="text-lg font-bold mb-4">Quick Links</h4>
-                    <ul class="space-y-2">
-                        <li><a href="#home" class="text-gray-400 hover:text-white transition">Home</a></li>
-                        <li><a href="#features" class="text-gray-400 hover:text-white transition">Features</a></li>
-                        <li><a href="#timings" class="text-gray-400 hover:text-white transition">Timings</a></li>
-                        <li><a href="#location" class="text-gray-400 hover:text-white transition">Location</a></li>
-                        <li><a href="#about" class="text-gray-400 hover:text-white transition">About Us</a></li>
-                        <li><a href="#contact" class="text-gray-400 hover:text-white transition">Contact</a></li>
-                    </ul>
-                </div>
-
-                <div>
-                    <h4 class="text-lg font-bold mb-4">Opening Hours</h4>
-                    <ul class="space-y-2 text-gray-400">
-                        <li>Mon-Fri: 8am - 10pm</li>
-                        <li>Saturday: 9am - 8pm</li>
-                        <li>Sunday: 9am - 6pm</li>
-                        <li>Holidays: 10am - 4pm</li>
-                    </ul>
-                </div>
-
-                <div>
-                    <h4 class="text-lg font-bold mb-4">Newsletter</h4>
-                    <p class="text-gray-400 mb-4">Subscribe to get updates on special offers and events.</p>
-                    <form class="flex">
-                        <input type="email" placeholder="Your email" class="px-4 py-2 rounded-l-lg focus:outline-none text-gray-900 w-full">
-                        <button type="submit" class="bg-blue-600 px-4 py-2 rounded-r-lg hover:bg-blue-700 transition">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
-                    </form>
-                    <div class="flex space-x-4 mt-4">
-                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-linkedin-in"></i></a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-                <p class="text-gray-400 mb-4 md:mb-0">© 2023 Librain. All rights reserved.</p>
-                <div class="flex space-x-6">
-                    <a href="#" class="text-gray-400 hover:text-white transition">Privacy Policy</a>
-                    <a href="#" class="text-gray-400 hover:text-white transition">Terms of Service</a>
-                    <a href="#" class="text-gray-400 hover:text-white transition">Sitemap</a>
-                </div>
-            </div>
-        </div>
-    </footer>
 
     <script>
         // Firebase Configuration
@@ -627,56 +1177,641 @@
             appId: "1:439952515541:web:f48ff9a5d3d8b35e845d5c"
         };
 
-        // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        // Initialize Firebase with error handling
+        let app, auth, database;
+        try {
+            app = firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            database = firebase.database();
+            console.log('Firebase initialized successfully');
 
-        // Mobile menu toggle
-        document.getElementById('mobile-menu-button').addEventListener('click', function() {
-            const menu = document.getElementById('mobile-menu');
-            menu.classList.toggle('hidden');
-        });
+            // Test database connectivity
+            database.ref('test').set('Hello, Firebase!').then(() => {
+                console.log('Database write successful');
+            }).catch(error => {
+                console.error('Database write failed:', error.message, error.code);
+                alert('Failed to connect to the database: ' + error.message);
+            });
+        } catch (error) {
+            console.error('Error initializing Firebase:', error.message, error.code);
+            alert('Failed to initialize Firebase: ' + error.message);
+        }
 
-        // Smooth scrolling for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
+        // Backend Simulation using Firebase Realtime Database
+        class SeatManager {
+            constructor() {
+                this.seatsRef = database ? database.ref('seats') : null;
+                this.membersRef = database ? database.ref('members') : null;
+                this.selectedSeat = null;
+                if (this.seatsRef && this.membersRef) {
+                    this.initializeDatabase();
+                    this.setupEventListeners();
+                } else {
+                    console.error('SeatManager: Database not initialized');
+                    alert('Database not available. Seat management will not function.');
+                }
+            }
 
-                const targetId = this.getAttribute('href');
-                if (targetId === '#') return;
+            initializeDatabase() {
+                this.seatsRef.once('value').then(snapshot => {
+                    if (!snapshot.exists()) {
+                        console.log('Initializing seat data...');
+                        const initialData = {};
+                        for (let i = 1; i <= 64; i++) {
+                            initialData[i] = null;
+                        }
+                        return this.seatsRef.set(initialData).then(() => {
+                            console.log('Seat data initialized successfully');
+                        });
+                    } else {
+                        console.log('Seat data already exists');
+                    }
+                }).catch(error => {
+                    console.error('Error initializing database:', error.message);
+                    alert('Error initializing seat data: ' + error.message);
+                });
+            }
 
-                const targetElement = document.querySelector(targetId);
-                if (targetElement) {
-                    targetElement.scrollIntoView({
-                        behavior: 'smooth'
+            loadSeats() {
+                if (!this.seatsRef) {
+                    console.error('Cannot load seats: Database not initialized');
+                    return;
+                }
+
+                const seatGrid = document.getElementById('seatGrid');
+                seatGrid.innerHTML = '<div class="text-center"><div class="spinner mx-auto"></div><p class="text-gray-500 mt-2">Loading seats...</p></div>';
+
+                this.seatsRef.on('value', snapshot => {
+                    const seats = snapshot.val() || {};
+                    seatGrid.innerHTML = '';
+
+                    // Ensure all 64 seats are rendered, even if some are missing in the database
+                    for (let i = 1; i <= 64; i++) {
+                        const seat = document.createElement('div');
+                        seat.className = 'seat';
+                        seat.dataset.id = i;
+                        seat.textContent = i;
+                        if (seats[i]) {
+                            seat.classList.add('occupied');
+                        }
+                        seatGrid.appendChild(seat);
+                    }
+
+                    // Add click listeners to seats
+                    document.querySelectorAll('.seat').forEach(seat => {
+                        seat.removeEventListener('click', this.selectSeat); // Prevent duplicate listeners
+                        seat.addEventListener('click', () => this.selectSeat(seat));
+                    });
+                }, error => {
+                    console.error('Error loading seats:', error.message);
+                    seatGrid.innerHTML = '<p class="text-red-500 text-center">Failed to load seats. Please try again.</p>';
+                    alert('Failed to load seats: ' + error.message);
+                });
+            }
+
+            selectSeat(seatElement) {
+                if (seatElement.classList.contains('occupied')) {
+                    this.displaySeatInfo(seatElement.dataset.id);
+                    this.selectedSeat = seatElement.dataset.id;
+                    document.querySelectorAll('.seat').forEach(s => s.classList.remove('selected'));
+                    seatElement.classList.add('selected');
+                } else {
+                    this.selectedSeat = seatElement.dataset.id;
+                    document.getElementById('seatInfo').innerHTML = `<p class="text-gray-500 text-center py-8 md:py-12 text-sm md:text-base">Seat ${seatElement.dataset.id} is available</p>`;
+                    document.querySelectorAll('.seat').forEach(s => s.classList.remove('selected'));
+                    seatElement.classList.add('selected');
+                    // Clear the form fields
+                    document.getElementById('seatForm').reset();
+                }
+            }
+
+            displaySeatInfo(seatId) {
+                this.seatsRef.child(seatId).once('value').then(snapshot => {
+                    const data = snapshot.val();
+                    if (data) {
+                        document.getElementById('seatInfo').innerHTML = `
+                            <p><strong>Seat:</strong> ${seatId}</p>
+                            <p><strong>Name:</strong> ${data.name}</p>
+                            <p><strong>Email:</strong> ${data.email}</p>
+                            <p><strong>Phone:</strong> ${data.phone}</p>
+                            <p><strong>Roll Number:</strong> ${data.rollNumber}</p>
+                            <p><strong>Joining Date:</strong> ${data.joiningDate}</p>
+                        `;
+                        document.getElementById('studentName').value = data.name;
+                        document.getElementById('studentEmail').value = data.email;
+                        document.getElementById('studentPhone').value = data.phone;
+                        document.getElementById('studentRoll').value = data.rollNumber; // Set roll number
+                        document.getElementById('joiningDate').value = data.joiningDate;
+                    } else {
+                        document.getElementById('seatInfo').innerHTML = `<p class="text-gray-500 text-center py-8 md:py-12 text-sm md:text-base">Seat ${seatId} is available</p>`;
+                        document.getElementById('seatForm').reset();
+                    }
+                }).catch(error => {
+                    console.error('Error fetching seat info:', error.message);
+                    alert('Failed to load seat info: ' + error.message);
+                });
+            }
+
+            assignSeat() {
+                if (!this.selectedSeat) {
+                    alert('Please select a seat first.');
+                    return;
+                }
+
+                const name = document.getElementById('studentName').value.trim();
+                const email = document.getElementById('studentEmail').value.trim();
+                const phone = document.getElementById('studentPhone').value.trim();
+                const joiningDate = document.getElementById('joiningDate').value;
+                const rollNumber = document.getElementById('studentRoll').value.trim();
+
+                if (!name || !email || !phone || !joiningDate || !rollNumber) {
+                    alert('Please fill in all fields.');
+                    return;
+                }
+
+                document.getElementById('assignText').classList.add('hidden');
+                document.getElementById('assignSpinner').classList.remove('hidden');
+
+                this.seatsRef.child(this.selectedSeat).set({
+                    name,
+                    email,
+                    phone,
+                    joiningDate,
+                    rollNumber // Include roll number in the data
+                }).then(() => {
+                    alert('Seat assigned successfully!');
+                    document.getElementById('seatForm').reset();
+                    this.selectedSeat = null;
+                }).catch(error => {
+                    console.error('Error assigning seat:', error.message);
+                    alert('Failed to assign seat: ' + error.message);
+                }).finally(() => {
+                    document.getElementById('assignText').classList.remove('hidden');
+                    document.getElementById('assignSpinner').classList.add('hidden');
+                });
+            }
+
+            vacateSeat() {
+                if (!this.selectedSeat) {
+                    alert('Please select a seat first.');
+                    return;
+                }
+
+                document.getElementById('vacateText').classList.add('hidden');
+                document.getElementById('vacateSpinner').classList.remove('hidden');
+
+                this.seatsRef.child(this.selectedSeat).set(null).then(() => {
+                    alert('Seat vacated successfully!');
+                    document.getElementById('seatInfo').innerHTML = `<p class="text-gray-500 text-center py-8 md:py-12 text-sm md:text-base">Select a seat to view details</p>`;
+                    document.getElementById('seatForm').reset();
+                    this.selectedSeat = null;
+                }).catch(error => {
+                    console.error('Error vacating seat:', error.message);
+                    alert('Failed to vacate seat: ' + error.message);
+                }).finally(() => {
+                    document.getElementById('vacateText').classList.remove('hidden');
+                    document.getElementById('vacateSpinner').classList.add('hidden');
+                });
+            }
+
+            saveMemberData(memberData) {
+                return this.membersRef.push(memberData).then(() => {
+                    console.log('Member data saved successfully');
+                    return true;
+                }).catch(error => {
+                    console.error('Error saving member data:', error);
+                    return false;
+                });
+            }
+
+            setupEventListeners() {
+                document.getElementById('assignBtn').addEventListener('click', () => this.assignSeat());
+                document.getElementById('vacateBtn').addEventListener('click', () => this.vacateSeat());
+            }
+        }
+
+        // Attendance Manager
+        class AttendanceManager {
+            constructor() {
+                this.attendanceRef = database ? database.ref('attendance') : null;
+                this.seatsRef = database ? database.ref('seats') : null;
+                this.attendanceChart = null;
+                if (this.attendanceRef && this.seatsRef) {
+                    this.setupEventListeners();
+                } else {
+                    console.error('AttendanceManager: Database not initialized');
+                    alert('Database not available. Attendance system will not function.');
+                }
+            }
+
+            setupEventListeners() {
+                document.getElementById('attendance-form').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const rollNumber = document.getElementById('rollNumber').value.trim();
+
+                    if (!rollNumber) {
+                        alert('Please enter your roll number.');
+                        return;
+                    }
+
+                    document.getElementById('markAttendanceText').classList.add('hidden');
+                    document.getElementById('markAttendanceSpinner').classList.remove('hidden');
+
+                    this.checkRollNumber(rollNumber);
+                });
+
+                // Add event listener for roll number input
+                document.getElementById('rollNumber').addEventListener('input', function (e) {
+                    // Convert input to uppercase
+                    this.value = this.value.toUpperCase();
+
+                    // Remove any non-alphanumeric characters
+                    this.value = this.value.replace(/[^A-Z0-9]/g, '');
+                });
+            }
+
+            checkRollNumber(rollNumber) {
+                this.seatsRef.orderByChild('rollNumber').equalTo(rollNumber).once('value').then(snapshot => {
+                    const seats = snapshot.val() || {};
+                    let studentDetails = null;
+                    let seatNumber = null;
+
+                    // Iterate through all seats to find the student details
+                    for (const seatId in seats) {
+                        if (seats[seatId] && seats[seatId].rollNumber === rollNumber) {
+                            studentDetails = seats[seatId];
+                            seatNumber = seatId;
+                            break;
+                        }
+                    }
+
+                    if (studentDetails) {
+                        // Display the attendance chart for the valid roll number
+                        this.displayAttendanceChart(rollNumber, studentDetails, seatNumber);
+                        this.markAttendance(rollNumber, studentDetails, seatNumber);
+                    } else {
+                        this.showAttendanceMessage('Invalid RKID! Click on Join Library.', 'error');
+                        document.getElementById('markAttendanceText').classList.remove('hidden');
+                        document.getElementById('markAttendanceSpinner').classList.add('hidden');
+                    }
+                }).catch(error => {
+                    console.error('Error checking roll number:', error.message);
+                    this.showAttendanceMessage('Failed to check roll number: ' + error.message, 'error');
+                    document.getElementById('markAttendanceText').classList.remove('hidden');
+                    document.getElementById('markAttendanceSpinner').classList.add('hidden');
+                });
+            }
+
+            markAttendance(rollNumber, studentDetails, seatNumber) {
+                const now = new Date();
+                const currentDay = now.getDay(); // 0 is Sunday, 1 is Monday, etc.
+                const currentHour = now.getHours();
+                const currentMinute = now.getMinutes();
+                const currentTime = currentHour * 60 + currentMinute;
+
+                // Check if it's Sunday
+                if (currentDay === 0) {
+                    this.showAttendanceMessage('Attendance can only be marked from Monday to Saturday.', 'error');
+                    return;
+                }
+
+                // Check if current time is between 9 AM and 5 PM (540 minutes to 1020 minutes)
+                if (currentTime < 540 || currentTime >= 1020) {
+                    this.showAttendanceMessage('Attendance Timing : 9AM-5PM', 'error');
+                    return;
+                }
+
+                // Check if attendance has already been marked today
+                const today = now.toISOString().split('T')[0];
+                this.attendanceRef.child(rollNumber).child(today).once('value').then(snapshot => {
+                    if (snapshot.exists()) {
+                        this.showAttendanceMessage('Attendance has already been marked for today.', 'error');
+                    } else {
+                        // Mark attendance with student details
+                        this.attendanceRef.child(rollNumber).child(today).set({
+                            timestamp: now.toISOString(),
+                            status: 'present',
+                            name: studentDetails.name,
+                            seatNumber: seatNumber,
+                            phone: studentDetails.phone
+                        }).then(() => {
+                            this.showAttendanceMessage('Attendance marked successfully!', 'success');
+                            // Fetch updated attendance data and redraw the chart
+                            this.displayAttendanceChart(rollNumber, studentDetails, seatNumber);
+                        }).catch(error => {
+                            console.error('Error marking attendance:', error.message);
+                            this.showAttendanceMessage('Failed to mark attendance: ' + error.message, 'error');
+                        });
+                    }
+                }).catch(error => {
+                    console.error('Error checking attendance:', error.message);
+                    this.showAttendanceMessage('Failed to check attendance: ' + error.message, 'error');
+                }).finally(() => {
+                    document.getElementById('markAttendanceText').classList.remove('hidden');
+                    document.getElementById('markAttendanceSpinner').classList.add('hidden');
+                });
+            }
+
+            fetchPast7DaysAttendance(rollNumber) {
+                const now = new Date();
+                const past7Days = Array.from({ length: 7 }, (_, i) => {
+                    const date = new Date(now);
+                    date.setDate(now.getDate() - i);
+                    return date.toISOString().split('T')[0];
+                });
+
+                return this.attendanceRef.child(rollNumber).once('value').then(snapshot => {
+                    const attendanceData = snapshot.val() || {};
+                    return past7Days.map(date => ({
+                        date,
+                        status: attendanceData[date] ? attendanceData[date].status : 'absent'
+                    }));
+                }).catch(error => {
+                    console.error('Error fetching past 7 days attendance:', error.message);
+                    throw error;
+                });
+            }
+
+            displayAttendanceChart(rollNumber, studentDetails, seatNumber) {
+                this.fetchPast7DaysAttendance(rollNumber).then(attendanceData => {
+                    const dates = attendanceData.map(data => {
+                        const date = new Date(data.date);
+                        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    });
+                    const statuses = attendanceData.map(data => data.status === 'present' ? 1 : 0);
+
+                    // Display student's name and seat number
+                    document.getElementById('studentNameDisplay').textContent = studentDetails.name;
+                    document.getElementById('seatNumberDisplay').textContent = seatNumber;
+
+                    // Destroy previous chart instance if it exists
+                    if (this.attendanceChart) {
+                        this.attendanceChart.destroy();
+                    }
+
+                    // Create the line graph
+                    const ctx = document.getElementById('attendanceChart').getContext('2d');
+                    this.attendanceChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: dates,
+                            datasets: [{
+                                label: 'Attendance',
+                                data: statuses,
+                                borderColor: 'rgba(108, 92, 231, 1)', // Changed graph color to purple
+                                backgroundColor: 'rgba(108, 92, 231, 0.2)', // Changed graph color to purple
+                                fill: true,
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    display: false, // Hide the legend
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Past 7 Days Attendance',
+                                    font: {
+                                        size: 18
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return value === 1 ? 'Present' : 'Absent';
+                                        }
+                                    }
+                                }
+                            },
+                            animation: {
+                                duration: 2000,
+                                easing: 'easeInOutQuart'
+                            }
+                        }
+                    });
+                    document.getElementById('attendanceChartContainer').classList.remove('hidden');
+                    document.getElementById('studentInfo').classList.remove('hidden');
+                }).catch(error => {
+                    console.error('Error displaying attendance chart:', error.message);
+                    alert('Failed to display attendance chart: ' + error.message);
+                });
+            }
+
+            showAttendanceMessage(message, type) {
+                const attendanceMessage = document.getElementById('attendanceMessage');
+                const attendanceSuccess = document.getElementById('attendanceSuccess');
+                const attendanceError = document.getElementById('attendanceError');
+
+                attendanceMessage.classList.remove('hidden');
+                if (type === 'success') {
+                    attendanceSuccess.textContent = message;
+                    attendanceError.textContent = '';
+                } else {
+                    attendanceSuccess.textContent = '';
+                    attendanceError.textContent = message;
+                }
+            }
+        }
+
+        // Authentication and UI Management
+        class UIManager {
+            constructor(seatManager) {
+                this.seatManager = seatManager;
+                this.init();
+            }
+
+            init() {
+                // Auth state listener
+                auth.onAuthStateChanged(user => {
+                    const loginPrompt = document.getElementById('loginPrompt');
+                    const seatGridContainer = document.getElementById('seatGridContainer');
+                    const seatInfoContainer = document.getElementById('seatInfoContainer');
+                    const loginButtons = document.querySelectorAll('.login-btn');
+                    const logoutButtons = document.querySelectorAll('.logout-btn');
+                    const attendanceSection = document.getElementById('attendance');
+
+                    if (user) {
+                        loginPrompt.classList.add('hidden');
+                        seatGridContainer.classList.remove('hidden');
+                        seatInfoContainer.classList.remove('hidden');
+                        loginButtons.forEach(btn => btn.classList.add('hidden'));
+                        logoutButtons.forEach(btn => btn.classList.remove('hidden'));
+                        this.seatManager.loadSeats();
+                    } else {
+                        loginPrompt.classList.remove('hidden');
+                        seatGridContainer.classList.add('hidden');
+                        seatInfoContainer.classList.add('hidden');
+                        loginButtons.forEach(btn => btn.classList.remove('hidden'));
+                        logoutButtons.forEach(btn => btn.classList.add('hidden'));
+                        document.getElementById('seatGrid').innerHTML = '';
+                    }
+
+                    // Always show the attendance section
+                    attendanceSection.classList.remove('hidden');
+                });
+
+                // Auth modal
+                document.querySelectorAll('.login-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        document.getElementById('authModal').classList.remove('hidden');
+                        document.getElementById('loginForm').classList.remove('hidden');
+                    });
+                });
+
+                document.getElementById('closeAuthModal').addEventListener('click', () => {
+                    document.getElementById('authModal').classList.add('hidden');
+                });
+
+                // Form submissions
+                document.getElementById('login-form').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const email = document.getElementById('loginEmail').value;
+                    const password = document.getElementById('loginPassword').value;
+
+                    document.getElementById('loginText').classList.add('hidden');
+                    document.getElementById('loginSpinner').classList.remove('hidden');
+
+                    auth.signInWithEmailAndPassword(email, password)
+                        .then(() => {
+                            document.getElementById('authModal').classList.add('hidden');
+                            document.getElementById('login-form').reset();
+                        })
+                        .catch(error => {
+                            console.error('Login error:', error.message);
+                            alert('Login failed: ' + error.message);
+                        })
+                        .finally(() => {
+                            document.getElementById('loginText').classList.remove('hidden');
+                            document.getElementById('loginSpinner').classList.add('hidden');
+                        });
+                });
+
+                document.querySelectorAll('.logout-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        auth.signOut().catch(error => {
+                            console.error('Logout error:', error.message);
+                            alert('Logout failed: ' + error.message);
+                        });
+                    });
+                });
+
+                // Onboarding modal
+                document.getElementById('openOnboarding').addEventListener('click', () => {
+                    document.getElementById('onboardingModal').classList.remove('hidden');
+                    document.getElementById('onboardingForm').style.display = 'block';
+                    document.getElementById('successMessage').style.display = 'none';
+                });
+
+                document.getElementById('closeOnboardingModal').addEventListener('click', () => {
+                    document.getElementById('onboardingModal').classList.add('hidden');
+                    document.getElementById('member-form').reset();
+                });
+
+                document.getElementById('cancelOnboarding').addEventListener('click', () => {
+                    document.getElementById('onboardingModal').classList.add('hidden');
+                    document.getElementById('member-form').reset();
+                });
+
+                document.getElementById('closeSuccess').addEventListener('click', () => {
+                    document.getElementById('onboardingModal').classList.add('hidden');
+                    document.getElementById('member-form').reset();
+                });
+
+                // Member form submission
+                document.getElementById('member-form').addEventListener('submit', (e) => {
+                    e.preventDefault();
+
+                    // Validate form
+                    const requiredFields = ['fullName', 'fatherName', 'dob', 'gender', 'aadhaar', 'mobile', 'email', 'address', 'city', 'state', 'pincode', 'qualification', 'occupation'];
+                    let isValid = true;
+
+                    requiredFields.forEach(fieldId => {
+                        const field = document.getElementById(fieldId);
+                        if (!field.value.trim()) {
+                            isValid = false;
+                            field.classList.add('border-red-500');
+                        } else {
+                            field.classList.remove('border-red-500');
+                        }
                     });
 
-                    // Close mobile menu if open
-                    const mobileMenu = document.getElementById('mobile-menu');
-                    if (!mobileMenu.classList.contains('hidden')) {
-                        mobileMenu.classList.add('hidden');
+                    if (!isValid) {
+                        alert('Please fill in all required fields.');
+                        return;
                     }
-                }
-            });
-        });
 
-        // Helper function to scroll to section
-        function scrollToSection(sectionId) {
-            const section = document.getElementById(sectionId);
-            if (section) {
-                section.scrollIntoView({ behavior: 'smooth' });
+                    // Validate Aadhaar number
+                    const aadhaar = document.getElementById('aadhaar').value;
+                    if (aadhaar.length !== 12 || !/^\d+$/.test(aadhaar)) {
+                        alert('Please enter a valid 12-digit Aadhaar number.');
+                        document.getElementById('aadhaar').classList.add('border-red-500');
+                        return;
+                    }
+
+                    // Validate mobile number
+                    const mobile = document.getElementById('mobile').value;
+                    if (mobile.length !== 10 || !/^\d+$/.test(mobile)) {
+                        alert('Please enter a valid 10-digit mobile number.');
+                        document.getElementById('mobile').classList.add('border-red-500');
+                        return;
+                    }
+
+                    // Validate pincode
+                    const pincode = document.getElementById('pincode').value;
+                    if (pincode.length !== 6 || !/^\d+$/.test(pincode)) {
+                        alert('Please enter a valid 6-digit pincode.');
+                        document.getElementById('pincode').classList.add('border-red-500');
+                        return;
+                    }
+
+                    // Prepare member data
+                    const memberData = {
+                        fullName: document.getElementById('fullName').value,
+                        fatherName: document.getElementById('fatherName').value,
+                        dob: document.getElementById('dob').value,
+                        gender: document.getElementById('gender').value,
+                        aadhaar: aadhaar,
+                        pan: document.getElementById('pan').value || null,
+                        mobile: mobile,
+                        altMobile: document.getElementById('altMobile').value || null,
+                        email: document.getElementById('email').value,
+                        address: document.getElementById('address').value,
+                        city: document.getElementById('city').value,
+                        state: document.getElementById('state').value,
+                        pincode: pincode,
+                        qualification: document.getElementById('qualification').value,
+                        occupation: document.getElementById('occupation').value,
+                        applicationDate: new Date().toISOString(),
+                        status: 'pending'
+                    };
+
+                    // Show loading state
+                    document.getElementById('submitMemberText').classList.add('hidden');
+                    document.getElementById('submitMemberSpinner').classList.remove('hidden');
+
+                    // Save to Firebase
+                    this.seatManager.saveMemberData(memberData).then(success => {
+                        if (success) {
+                            // Show success message
+                            document.getElementById('onboardingForm').style.display = 'none';
+                            document.getElementById('successMessage').style.display = 'block';
+                        } else {
+                            alert('Failed to submit application. Please try again.');
+                        }
+                    }).finally(() => {
+                        document.getElementById('submitMemberText').classList.remove('hidden');
+                        document.getElementById('submitMemberSpinner').classList.add('hidden');
+                    });
+                });
             }
         }
 
         // Modal functions
-        function showLoginModal() {
-            document.getElementById('login-modal').classList.remove('hidden');
-        }
-
-        function hideLoginModal() {
-            document.getElementById('login-modal').classList.add('hidden');
-        }
-
         function showBookingModal(packageType = '') {
             if (packageType) {
                 document.getElementById('selected-package').textContent = packageType;
@@ -686,14 +1821,6 @@
 
         function hideBookingModal() {
             document.getElementById('booking-modal').classList.add('hidden');
-        }
-
-        function showAttendanceModal() {
-            document.getElementById('attendance-modal').classList.remove('hidden');
-        }
-
-        function hideAttendanceModal() {
-            document.getElementById('attendance-modal').classList.add('hidden');
         }
 
         function showSuccessToast(message) {
@@ -708,13 +1835,7 @@
             }, 3000);
         }
 
-        // Form submissions
-        document.getElementById('login-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            hideLoginModal();
-            showSuccessToast('Login successful!');
-        });
-
+        // Booking form submission
         document.getElementById('booking-form').addEventListener('submit', function(e) {
             e.preventDefault();
 
@@ -746,46 +1867,18 @@
             });
         });
 
-        document.getElementById('attendance-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            hideAttendanceModal();
-            showSuccessToast('Attendance marked successfully!');
-        });
+        // Initialize application
+        const seatManager = new SeatManager();
+        const attendanceManager = new AttendanceManager();
+        const uiManager = new UIManager(seatManager);
 
-        document.getElementById('contact-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            showSuccessToast('Message sent! We\'ll get back to you soon.');
-            this.reset();
-        });
-
-        // Close modals when clicking outside
-        document.addEventListener('click', function(e) {
-            if (e.target.id === 'login-modal') {
-                hideLoginModal();
+        // Helper function to scroll to section
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth' });
             }
-            if (e.target.id === 'booking-modal') {
-                hideBookingModal();
-            }
-            if (e.target.id === 'attendance-modal') {
-                hideAttendanceModal();
-            }
-        });
-
-        // Close modals with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                hideLoginModal();
-                hideBookingModal();
-                hideAttendanceModal();
-            }
-        });
-
-        // Set today's date as default for date inputs
-        document.addEventListener('DOMContentLoaded', function() {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('booking-date').setAttribute('min', today);
-            document.getElementById('attendance-date').value = today;
-        });
+        }
     </script>
 </body>
 </html>
