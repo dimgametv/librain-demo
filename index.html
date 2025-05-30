@@ -472,7 +472,7 @@
             </div>
             <div class="flex items-center space-x-4">
                 <button id="toggleLibrarySection" class="neumorphic-btn px-4 py-2 text-gray-700">
-                    <i class="fas fa-toggle-on"></i>
+                    <i class="fas fa-lock"></i>
                 </button>
                 <button class="neumorphic-btn px-4 py-2 bg-purple-600 text-white" id="openOnboarding">
                     <i class="fas fa-user-plus mr-2"></i> Join Library
@@ -1670,13 +1670,20 @@
 
             init() {
                 // Toggle library section
-                document.getElementById('toggleLibrarySection').addEventListener('click', () => {
-                    const librarySection = document.getElementById('librarySection');
-                    if (librarySection.classList.contains('hidden')) {
+                const toggleButton = document.getElementById('toggleLibrarySection');
+                const librarySection = document.getElementById('librarySection');
+                let isLocked = true;
+
+                toggleButton.addEventListener('click', () => {
+                    if (isLocked) {
                         librarySection.classList.remove('hidden');
+                        toggleButton.innerHTML = '<i class="fas fa-unlock"></i>';
+                        librarySection.scrollIntoView({ behavior: 'smooth' });
                     } else {
                         librarySection.classList.add('hidden');
+                        toggleButton.innerHTML = '<i class="fas fa-lock"></i>';
                     }
+                    isLocked = !isLocked;
                 });
 
                 // Auth state listener
