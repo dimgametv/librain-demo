@@ -13,6 +13,7 @@
     <!-- Chart.js library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* Previous styles remain the same */
         :root {
             --primary: #6c5ce7;
             --secondary: #a29bfe;
@@ -470,8 +471,8 @@
                 <h1 class="text-xl md:text-2xl font-bold text-gray-800">Librain</h1>
             </div>
             <div class="flex items-center space-x-4">
-                <button class="neumorphic-btn px-4 py-2 text-gray-700 logout-btn hidden">
-                    <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                <button id="toggleLogin" class="neumorphic-btn px-4 py-2 text-gray-700">
+                    <i class="fas fa-toggle-on mr-2"></i> Toggle Login
                 </button>
                 <button class="neumorphic-btn px-4 py-2 bg-purple-600 text-white" id="openOnboarding">
                     <i class="fas fa-user-plus mr-2"></i> Join Library
@@ -1695,6 +1696,23 @@
 
                     // Always show the attendance section
                     attendanceSection.classList.remove('hidden');
+                });
+
+                // Toggle login area
+                document.getElementById('toggleLogin').addEventListener('click', () => {
+                    const loginPrompt = document.getElementById('loginPrompt');
+                    const seatGridContainer = document.getElementById('seatGridContainer');
+                    const seatInfoContainer = document.getElementById('seatInfoContainer');
+
+                    if (loginPrompt.classList.contains('hidden')) {
+                        loginPrompt.classList.remove('hidden');
+                        seatGridContainer.classList.add('hidden');
+                        seatInfoContainer.classList.add('hidden');
+                    } else {
+                        loginPrompt.classList.add('hidden');
+                        seatGridContainer.classList.remove('hidden');
+                        seatInfoContainer.classList.remove('hidden');
+                    }
                 });
 
                 // Auth modal
