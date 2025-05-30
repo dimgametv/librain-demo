@@ -471,8 +471,8 @@
                 <h1 class="text-xl md:text-2xl font-bold text-gray-800">Librain</h1>
             </div>
             <div class="flex items-center space-x-4">
-                <button id="toggleLogin" class="neumorphic-btn px-4 py-2 text-gray-700">
-                    <i class="fas fa-toggle-on mr-2"></i> Toggle Login
+                <button id="toggleLibrarySection" class="neumorphic-btn px-4 py-2 text-gray-700">
+                    <i class="fas fa-toggle-on mr-2"></i> Toggle Library Section
                 </button>
                 <button class="neumorphic-btn px-4 py-2 bg-purple-600 text-white" id="openOnboarding">
                     <i class="fas fa-user-plus mr-2"></i> Join Library
@@ -1031,7 +1031,7 @@
     </section>
 
     <!-- Library Section -->
-    <section id="library" class="py-12 md:py-16 px-4 md:px-12">
+    <section id="librarySection" class="py-12 md:py-16 px-4 md:px-12">
         <div class="container mx-auto">
             <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6 md:mb-8 text-center">Library Seat Management</h2>
 
@@ -1669,6 +1669,16 @@
             }
 
             init() {
+                // Toggle library section
+                document.getElementById('toggleLibrarySection').addEventListener('click', () => {
+                    const librarySection = document.getElementById('librarySection');
+                    if (librarySection.classList.contains('hidden')) {
+                        librarySection.classList.remove('hidden');
+                    } else {
+                        librarySection.classList.add('hidden');
+                    }
+                });
+
                 // Auth state listener
                 auth.onAuthStateChanged(user => {
                     const loginPrompt = document.getElementById('loginPrompt');
@@ -1696,23 +1706,6 @@
 
                     // Always show the attendance section
                     attendanceSection.classList.remove('hidden');
-                });
-
-                // Toggle login area
-                document.getElementById('toggleLogin').addEventListener('click', () => {
-                    const loginPrompt = document.getElementById('loginPrompt');
-                    const seatGridContainer = document.getElementById('seatGridContainer');
-                    const seatInfoContainer = document.getElementById('seatInfoContainer');
-
-                    if (loginPrompt.classList.contains('hidden')) {
-                        loginPrompt.classList.remove('hidden');
-                        seatGridContainer.classList.add('hidden');
-                        seatInfoContainer.classList.add('hidden');
-                    } else {
-                        loginPrompt.classList.add('hidden');
-                        seatGridContainer.classList.remove('hidden');
-                        seatInfoContainer.classList.remove('hidden');
-                    }
                 });
 
                 // Auth modal
